@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import { Button } from "./shadcn/button";
 
 export default function SecaoPrincipal() {
   return (
@@ -15,9 +15,10 @@ export default function SecaoPrincipal() {
             <Button className="bg-primary hover:bg-green-700 text-white font-poppins">
               Quero Doar
             </Button>
-            <Button className="border border-secondary text-secondary font-poppins">
+            <Button variant="outline" className="border border-secondary text-secondary font-poppins">
               Preciso de Ajuda
             </Button>
+
           </div>
         </div>
 

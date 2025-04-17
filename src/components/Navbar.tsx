@@ -1,4 +1,4 @@
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/shadcn/button";
 import logo from "@/assets/doefood-logo.png";
 
 export default function Navbar() {
