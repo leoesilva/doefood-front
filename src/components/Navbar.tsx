@@ -18,7 +18,6 @@ export default function Navbar() {
           <Link to="/login">
             <Button variant="ghost">Entrar</Button>
           </Link>
-          <Button variant="outline">Cadastrar</Button>
         </nav>
       </div>
     </header>
