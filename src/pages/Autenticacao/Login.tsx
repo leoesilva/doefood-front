@@ -2,6 +2,7 @@ import { Button } from "@/components/shadcn/button"
 import { Input } from "@/components/shadcn/input"
 import { Separator } from "@/components/shadcn/separator"
 import { FcGoogle } from "react-icons/fc"
+import { Link } from "react-router-dom"
 
 export default function Login() {
   return (
@@ -54,9 +55,10 @@ export default function Login() {
                 />
                 Lembrar-me
               </label>
-              <a href="#" className="text-sm text-blue-600 hover:underline">
+              <Link to="/autenticacao/esqueci-senha" className="text-sm text-blue-600 hover:underline">
                 Esqueceu a senha?
-              </a>
+              </Link>
+
             </div>
 
           </div>

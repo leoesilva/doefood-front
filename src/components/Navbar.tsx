@@ -15,7 +15,7 @@ export default function Navbar() {
         </div>
 
         <nav className="flex gap-4 items-center">
-          <Link to="/login">
+          <Link to="/autenticacao/login">
             <Button variant="ghost">Entrar</Button>
           </Link>
         </nav>
