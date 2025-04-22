@@ -14,9 +14,9 @@ export default function Navbar() {
           />
         </div>
 
-        <nav className="flex gap-4 items-center">
+        <nav className="flex gap-4  items-center">
           <Link to="/autenticacao/login">
-            <Button variant="ghost">Entrar</Button>
+            <Button className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105">Entrar</Button>
           </Link>
         </nav>
       </div>
