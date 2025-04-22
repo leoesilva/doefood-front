@@ -1,12 +1,14 @@
+import equipe from "../assets/equipe.png";
+
 export default function SecaoSobreNos() {
   return (
     <section className="bg-white py-16" id="sobre-nos">
       <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-10">
-        <div className="md:w-1/2">
+        <div className="md:w-1/2 flex justify-center">
           <img
-            src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png"
+            src={equipe}
             alt="Nossa equipe"
-            className="w-full max-w-md mx-auto"
+            className="w-full max-w-[400px] h-[400px] object-cover rounded-full shadow-lg"
           />
         </div>
         <div className="md:w-1/2">
