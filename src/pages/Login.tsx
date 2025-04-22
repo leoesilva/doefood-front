@@ -1,23 +1,16 @@
 import { Button } from "@/components/shadcn/button"
 import { Input } from "@/components/shadcn/input"
 import { Separator } from "@/components/shadcn/separator"
-import { GitHubLogoIcon } from "@radix-ui/react-icons"
 import { FcGoogle } from "react-icons/fc"
 
 export default function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="w-full max-w-sm p-6 rounded-xl shadow-md border bg-white">
-        <h1 className="text-2xl font-semibold text-center">Cadastre-se</h1>
-        <p className="text-sm text-gray-500 text-center mt-1">
-          Entre com o seu e-mail abaixo para criar a sua conta
-        </p>
+        <h1 className="text-2xl font-semibold text-center">Conecte-se</h1>
 
         <div className="flex gap-2 mt-6">
-          <Button variant="outline" className="w-full flex items-center gap-2">
-            <GitHubLogoIcon className="h-4 w-4" />
-            GitHub
-          </Button>
+
           <Button variant="outline" className="w-full flex items-center gap-2">
             <FcGoogle className="h-4 w-4" />
             Google
@@ -53,10 +46,23 @@ export default function Login() {
               placeholder="••••••••"
               required
             />
+            <div className="flex items-center justify-between mt-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="accent-blue-600 h-4 w-4"
+                />
+                Lembrar-me
+              </label>
+              <a href="#" className="text-sm text-blue-600 hover:underline">
+                Esqueceu a senha?
+              </a>
+            </div>
+
           </div>
 
           <Button type="submit" className="w-full mt-2">
-            Criar conta
+            Entrar
           </Button>
         </form>
       </div>
