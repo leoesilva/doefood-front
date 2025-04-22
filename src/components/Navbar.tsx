@@ -1,4 +1,5 @@
 import { Button } from "@/components/shadcn/button";
+import { Link } from "react-router-dom";
 import logo from "@/assets/doefood-logo.png";
 
 export default function Navbar() {
@@ -14,7 +15,9 @@ export default function Navbar() {
         </div>
 
         <nav className="flex gap-4 items-center">
-          <Button variant="ghost">Entrar</Button>
+          <Link to="/login">
+            <Button variant="ghost">Entrar</Button>
+          </Link>
           <Button variant="outline">Cadastrar</Button>
         </nav>
       </div>
