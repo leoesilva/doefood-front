@@ -67,6 +67,12 @@ export default function Login() {
             Entrar
           </Button>
         </form>
+        <Link
+          to="/"
+          className="block mt-4 text-sm text-blue-600 hover:underline text-center"
+        >
+          ← Voltar para a página inicial
+        </Link>
       </div>
     </div>
   )
