@@ -10,24 +10,24 @@ export default function SecaoSobre() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-green-100 p-6 rounded-xl shadow-sm transition-transform transform hover:scale-105">
-            <h4 className="text-lg font-semibold font-poppins mb-2">♻️ Reduz Desperdício</h4>
-            <p className="text-sm text-gray-600 font-roboto font-semibold">
-              Aproveite alimentos bons que seriam descartados.
-            </p>
-          </div>
-          <div className="bg-green-100 p-6 rounded-xl shadow-sm transition-transform transform hover:scale-105">
-            <h4 className="text-lg font-semibold font-poppins mb-2">🤝 Conecta Pessoas</h4>
-            <p className="text-sm text-gray-600 font-roboto font-semibold">
-              Aproxima empresas, ONGs e pessoas em rede solidária.
-            </p>
-          </div>
-          <div className="bg-green-100 p-6 rounded-xl shadow-sm transition-transform transform hover:scale-105">
-            <h4 className="text-lg font-semibold font-poppins mb-2">🌍 Impacto Social</h4>
-            <p className="text-sm text-gray-600 font-roboto font-semibold">
-              Transforme a realidade de quem mais precisa.
-            </p>
-          </div>
+          {[
+            { icon: "♻️", title: "Reduz Desperdício", desc: "Aproveite alimentos bons que seriam descartados." },
+            { icon: "🤝", title: "Conecta Pessoas", desc: "Aproxima empresas, ONGs e pessoas em rede solidária." },
+            { icon: "🌍", title: "Impacto Social", desc: "Transforme a realidade de quem mais precisa." },
+          ].map((item, index) => (
+            <div
+              key={index}
+              className="bg-green-100 p-6 rounded-xl shadow-sm transition-transform transform hover:scale-105"
+            >
+              <div className="text-4xl mb-2">{item.icon}</div>
+              <h4 className="text-lg font-semibold font-poppins mb-2">
+                {item.title}
+              </h4>
+              <p className="text-sm text-gray-600 font-roboto font-semibold">
+                {item.desc}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
