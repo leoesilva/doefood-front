@@ -67,6 +67,18 @@ export default function Login() {
             Entrar
           </Button>
         </form>
+
+        <p className="text-sm text-center mt-4">
+          Não tem uma conta?{" "}
+          <Link
+            to="/autenticacao/criar-conta"
+            className="text-blue-600 hover:underline"
+          >
+            Cadastre-se
+          </Link>
+        </p>
+
+
         <Link
           to="/"
           className="block mt-4 text-sm text-blue-600 hover:underline text-center"
