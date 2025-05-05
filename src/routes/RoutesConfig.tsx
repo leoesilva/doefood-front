@@ -3,6 +3,7 @@ import Home from "../pages/Home";
 import Login from "@/pages/Autenticacao/Login";
 import EsqueceuSenha from "@/pages/Autenticacao/EsqueceuSenha";
 import CriarConta from "@/pages/Autenticacao/CriarConta";
+import { HomeDoador } from "@/pages/Doador/HomeDoador";
 
 
 const RoutesConfig = () => {
@@ -12,6 +13,11 @@ const RoutesConfig = () => {
       <Route path="/autenticacao/login" element={<Login />} />
       <Route path="/autenticacao/esqueci-senha" element={<EsqueceuSenha />} />
       <Route path="/autenticacao/criar-conta" element={<CriarConta />} />
+
+      <Route path="/doador" element={<HomeDoador />}>
+
+      </Route>
+      
     </Routes>
   );
 };

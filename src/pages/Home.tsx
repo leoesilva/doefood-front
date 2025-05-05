@@ -4,6 +4,7 @@ import SecaoObjetivo from "@/components/SecaoObjetivo";
 import SecaoComoFunciona from "@/components/SecaoComoFunciona";
 import Footer from "@/components/Footer";
 import SecaoSobreNos from "@/components/SecaoSobreNos";
+import SecaoOds from "@/components/SecaoOds";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
     <main>
       <SecaoPrincipal />
       <SecaoObjetivo />
+      <SecaoOds />
       <SecaoComoFunciona />
       <SecaoSobreNos />
     </main>
