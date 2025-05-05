@@ -13,7 +13,7 @@ export default function SecaoSobreNos() {
         </div>
         <div className="md:w-1/2">
           <h2 className="text-3xl font-bold text-primary font-poppins mb-4">
-            Quem somos
+            Quem somos ?
           </h2>
           <p className="text-gray-700 font-roboto mb-6">
             Somos um grupo apaixonado por impacto social, com a missão de conectar doadores de alimentos a quem mais precisa.

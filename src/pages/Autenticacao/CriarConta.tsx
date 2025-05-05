@@ -1,7 +1,5 @@
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
-import { Separator } from "@/components/shadcn/separator";
-import { FcGoogle } from "react-icons/fc";
 import { Link } from "react-router-dom";
 
 export default function CriarConta() {
