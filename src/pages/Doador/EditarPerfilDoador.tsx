@@ -50,7 +50,7 @@ export const EditarPerfilDoador = () => {
 
           <Separator className="my-4" />
 
-          <Link to="/perfil-doador" className="block text-center text-sm text-blue-600 hover:underline">
+          <Link to="/doador" className="block text-center text-sm text-blue-600 hover:underline">
             ← Voltar para o perfil
           </Link>
         </div>
