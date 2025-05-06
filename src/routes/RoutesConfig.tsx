@@ -4,14 +4,7 @@ import Login from "@/pages/Autenticacao/Login";
 import EsqueceuSenha from "@/pages/Autenticacao/EsqueceuSenha";
 import CriarConta from "@/pages/Autenticacao/CriarConta";
 import { HomeDoador } from "@/pages/Doador/HomeDoador";
-import { EditarPerfilDoador } from "@/pages/Doador/EditarPerfilDoador"
-
-
-
-
-
-
-
+import { EditarPerfilDoador } from "@/pages/Doador/EditarPerfilDoador";
 
 const RoutesConfig = () => {
   return (
@@ -21,17 +14,8 @@ const RoutesConfig = () => {
       <Route path="/autenticacao/esqueci-senha" element={<EsqueceuSenha />} />
       <Route path="/autenticacao/criar-conta" element={<CriarConta />} />
 
-      <Route path="/doador" element={<HomeDoador />}/>
+      <Route path="/doador" element={<HomeDoador />} />
       <Route path="/doador/editar-perfil" element={<EditarPerfilDoador />} />
-
-  
-
-     
-     
-
-       
-     
-
     </Routes>
   );
 };
