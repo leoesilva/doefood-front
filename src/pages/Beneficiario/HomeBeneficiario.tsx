@@ -4,13 +4,13 @@ import { FaSignOutAlt, FaUserEdit, FaBoxOpen } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import Footer from "@/components/Footer"
 
-export const HomeOng = () => {
+export const HomeBeneficiario = () => {
   return (
     <>
       <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center py-10 px-4">
         <div className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-8 space-y-8">
           <h1 className="text-3xl font-bold text-[#4CAF50] text-center font-poppins">
-            Bem-vinda, ONG!
+            Bem-vindo, Beneficiário!
           </h1>
 
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -32,7 +32,7 @@ export const HomeOng = () => {
             <Link to="/ong/doacoes">
               <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
                 <FaBoxOpen className="text-2xl" />
-                Ver Doações
+                Doações
               </Button>
             </Link>
 

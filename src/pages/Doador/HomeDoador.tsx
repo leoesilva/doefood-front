@@ -32,7 +32,7 @@ export const HomeDoador = () => {
           <div className="grid md:grid-cols-2 gap-4">
             <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
               <FaHandHoldingHeart className="text-2xl" />
-              Realizar Doação
+              Doações
             </Button>
 
             <Button className="bg-red-500 hover:bg-red-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
