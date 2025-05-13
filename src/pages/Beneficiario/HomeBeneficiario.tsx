@@ -41,7 +41,7 @@ export default function HomeBeneficiario() {
               </Button>
             </Link>
 
-            <Link to="/beneficiario/historico-doacoes">
+            <Link to="/beneficiario/historico-doacao">
               <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
                 <FaHistory className="text-2xl" />
                 Histórico de Doações
