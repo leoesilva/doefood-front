@@ -16,7 +16,9 @@ export default function NovaDoacao() {
 
   const [mensagem, setMensagem] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -32,9 +34,13 @@ export default function NovaDoacao() {
     <div className="flex flex-col min-h-screen bg-gray-50">
       <main className="flex-1">
         <div className="text-center py-8 px-4">
-          <h1 className="text-3xl font-bold text-green-700 mb-2"> Nova Doação</h1>
+          <h1 className="text-3xl font-bold text-green-700 mb-2">
+            {" "}
+            Nova Doação
+          </h1>
           <p className="text-gray-700 max-w-xl mx-auto">
-            Sua doação pode transformar vidas! Preencha o formulário ao lado para compartilhar alimentos com quem mais precisa.
+            Sua doação pode transformar vidas! Preencha o formulário ao lado
+            para compartilhar alimentos com quem mais precisa.
           </p>
         </div>
 
@@ -52,7 +58,9 @@ export default function NovaDoacao() {
             className="w-full max-w-md bg-white p-6 rounded shadow-md space-y-4"
           >
             <div>
-              <label className="block text-sm font-medium text-gray-700">Alimento</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Alimento
+              </label>
               <input
                 type="text"
                 name="alimento"
@@ -65,7 +73,9 @@ export default function NovaDoacao() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Quantidade (kg ou unidades)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Quantidade (kg ou unidades)
+              </label>
               <input
                 type="number"
                 name="quantidade"
@@ -78,7 +88,9 @@ export default function NovaDoacao() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Validade (se aplicável)</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Validade (se aplicável)
+              </label>
               <input
                 type="date"
                 name="validade"
@@ -89,7 +101,9 @@ export default function NovaDoacao() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Beneficiario</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Beneficiario
+              </label>
               <input
                 type="text"
                 name="beneficiario"
@@ -101,9 +115,10 @@ export default function NovaDoacao() {
               />
             </div>
 
-
             <div>
-              <label className="block text-sm font-medium text-gray-700">Endereço para coleta ou entrega</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Endereço para coleta ou entrega
+              </label>
               <textarea
                 name="endereco"
                 value={formData.endereco}
@@ -128,7 +143,6 @@ export default function NovaDoacao() {
             >
               ← Voltar
             </button>
-
 
             {mensagem && (
               <div className="mt-4 text-green-700 font-medium bg-green-50 p-3 rounded border border-green-200">

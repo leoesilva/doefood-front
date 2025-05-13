@@ -23,14 +23,14 @@ const doacoesMock = [
   },
 ];
 
-export default function HistoricoDoacoes() {
+export default function HistoricoDoacaoDoador() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gray-50 font-[Roboto]">
       <main className="max-w-6xl mx-auto px-6 py-12 flex-grow">
         <h1 className="text-3xl font-bold text-green-700 mb-8 text-center">
-           Histórico de Doações
+          Histórico de Doações
         </h1>
 
         {doacoesMock.length > 0 ? (

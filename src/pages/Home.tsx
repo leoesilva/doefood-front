@@ -9,15 +9,15 @@ import SecaoOds from "@/components/SecaoOds";
 export default function Home() {
   return (
     <>
-    <Navbar />
-    <main>
-      <SecaoPrincipal />
-      <SecaoObjetivo />
-      <SecaoOds />
-      <SecaoComoFunciona />
-      <SecaoSobreNos />
-    </main>
-    <Footer />
+      <Navbar />
+      <main>
+        <SecaoPrincipal />
+        <SecaoObjetivo />
+        <SecaoOds />
+        <SecaoComoFunciona />
+        <SecaoSobreNos />
+      </main>
+      <Footer />
     </>
-  )
+  );
 }

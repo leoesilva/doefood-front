@@ -1,13 +1,19 @@
 // HomeDoador.tsx
 import { Button } from "@/components/shadcn/button";
 import { Separator } from "@/components/shadcn/separator";
-import { FaHandHoldingHeart, FaHistory, FaSignOutAlt, FaUserEdit, FaAward } from "react-icons/fa";
+import {
+  FaHandHoldingHeart,
+  FaHistory,
+  FaSignOutAlt,
+  FaUserEdit,
+  FaAward,
+} from "react-icons/fa";
 import { Link, Navigate } from "react-router-dom";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 
-export const HomeDoador = () => {
+export default function HomeDoador() {
   const { user, logout } = useAuth();
 
   if (!user) return <Navigate to="/autenticacao/login" />;
@@ -22,7 +28,8 @@ export const HomeDoador = () => {
           </h1>
 
           <div className="text-center text-gray-700 text-lg italic">
-            Seu gesto de solidariedade ajuda a combater a fome e o desperdício de alimentos. Você é essencial nessa corrente do bem!
+            Seu gesto de solidariedade ajuda a combater a fome e o desperdício
+            de alimentos. Você é essencial nessa corrente do bem!
           </div>
 
           {/* Certificado */}
@@ -30,7 +37,9 @@ export const HomeDoador = () => {
             <div className="flex items-center gap-4">
               <FaAward className="text-4xl text-[#FF9800]" />
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">Certificado de Doador</h2>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Certificado de Doador
+                </h2>
                 <p className="text-gray-600 text-sm">
                   Reconhecimento simbólico pelo seu compromisso social
                 </p>
@@ -48,14 +57,13 @@ export const HomeDoador = () => {
                 <FaHandHoldingHeart className="text-2xl" />
                 Nova Doação
               </Button>
-            </Link >
+            </Link>
 
             <Link to="/doador/historico-doacoes">
               <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
                 <FaHistory className="text-2xl" />
                 Histórico de Doações
               </Button>
-
             </Link>
           </div>
 
@@ -86,4 +94,4 @@ export const HomeDoador = () => {
       <Footer />
     </>
   );
-};
+}
