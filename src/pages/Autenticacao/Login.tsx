@@ -1,3 +1,6 @@
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/context/AuthContext" // ajuste o caminho conforme sua estrutura
 import { Button } from "@/components/shadcn/button"
 import { Input } from "@/components/shadcn/input"
 import { Separator } from "@/components/shadcn/separator"
@@ -5,13 +8,29 @@ import { FcGoogle } from "react-icons/fc"
 import { Link } from "react-router-dom"
 
 export default function Login() {
+  const [email, setEmail] = useState("")
+  const [senha, setSenha] = useState("")
+  const [erro, setErro] = useState("")
+
+  const { login } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const sucesso = login(email.trim(), senha.trim());
+    if (sucesso) {
+      navigate("/doador") // ou a rota que representa a tela pós-login
+    } else {
+      setErro("E-mail ou senha inválidos.")
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="w-full max-w-sm p-6 rounded-xl shadow-md border bg-white">
         <h1 className="text-2xl font-semibold text-center">Conecte-se</h1>
 
         <div className="flex gap-2 mt-6">
-
           <Button variant="outline" className="w-full flex items-center gap-2">
             <FcGoogle className="h-4 w-4" />
             Google
@@ -24,46 +43,53 @@ export default function Login() {
           <Separator className="flex-1" />
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium">
               E-mail
             </label>
             <Input
-              id="e-mail"
+              id="email"
               type="email"
               placeholder="e-mail@gmail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium">
+            <label htmlFor="senha" className="block text-sm font-medium">
               Senha
             </label>
             <Input
               id="senha"
               type="password"
               placeholder="••••••••"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
               required
             />
             <div className="flex items-center justify-between mt-2">
               <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  className="accent-blue-600 h-4 w-4"
-                />
+                <input type="checkbox" className="accent-blue-600 h-4 w-4" />
                 Lembrar-me
               </label>
-              <Link to="/autenticacao/esqueci-senha" className="text-sm text-blue-600 hover:underline">
+              <Link
+                to="/autenticacao/esqueci-senha"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Esqueceu a senha?
               </Link>
-
             </div>
-
           </div>
 
-          <Button type="submit" className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2">
+          {erro && <p className="text-sm text-red-500">{erro}</p>}
+
+          <Button
+            type="submit"
+            className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2"
+          >
             Entrar
           </Button>
         </form>
@@ -77,7 +103,6 @@ export default function Login() {
             Cadastre-se
           </Link>
         </p>
-
 
         <Link
           to="/"

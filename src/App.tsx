@@ -1,11 +1,14 @@
 import { BrowserRouter as Router } from "react-router-dom";
-import RoutesConfig from "./routes/RoutesConfig"
+import RoutesConfig from "./routes/RoutesConfig";
+import { AuthProvider } from "./context/AuthContext"; // ajuste o caminho conforme necessário
 
 function App() {
   return (
-    <Router>
-      <RoutesConfig /> 
-    </Router>
+    <AuthProvider>
+      <Router>
+        <RoutesConfig />
+      </Router>
+    </AuthProvider>
   );
 }
 
