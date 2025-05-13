@@ -8,6 +8,8 @@ import { EditarPerfilDoador } from "@/pages/Doador/EditarPerfilDoador";
 import { HomeBeneficiario } from "@/pages/Beneficiario/HomeBeneficiario";
 import { EditarPerfilBeneficiario } from "@/pages/Beneficiario/EditarPerfilBeneficiario";
 import { DoacoesRecebidas } from "@/pages/Beneficiario/DoacoesRecebidas";
+import NovaDoacao from "@/pages/Doador/NovaDoacao";
+import HistoricoDoacoes from "@/pages/Doador/HistoricoDoacao";
 
 const RoutesConfig = () => {
   return (
@@ -18,6 +20,8 @@ const RoutesConfig = () => {
       <Route path="/autenticacao/criar-conta" element={<CriarConta />} />
 
       <Route path="/doador" element={<HomeDoador />} />
+      <Route path="/doador/nova-doacao" element={<NovaDoacao />} />
+      <Route path="/doador/historico-doacoes" element={<HistoricoDoacoes />} />
       <Route path="/doador/editar-perfil" element={<EditarPerfilDoador />} />
       <Route path="/beneficiario" element={<HomeBeneficiario />} />
       <Route path="/beneficiario/editar-perfil" element={<EditarPerfilBeneficiario />} />
