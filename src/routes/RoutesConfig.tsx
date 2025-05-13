@@ -5,9 +5,9 @@ import EsqueceuSenha from "@/pages/Autenticacao/EsqueceuSenha";
 import CriarConta from "@/pages/Autenticacao/CriarConta";
 import { HomeDoador } from "@/pages/Doador/HomeDoador";
 import { EditarPerfilDoador } from "@/pages/Doador/EditarPerfilDoador";
-import { HomeOng } from "@/pages/ong/HomeOng";
-import { EditarPerfilOng } from "@/pages/ong/EditarPerfilOng";
-import { DoacoesRecebidas } from "@/pages/ong/DoacoesRecebidas";
+import { HomeBeneficiario } from "@/pages/Beneficiario/HomeBeneficiario";
+import { EditarPerfilBeneficiario } from "@/pages/Beneficiario/EditarPerfilBeneficiario";
+import { DoacoesRecebidas } from "@/pages/Beneficiario/DoacoesRecebidas";
 
 const RoutesConfig = () => {
   return (
@@ -19,9 +19,9 @@ const RoutesConfig = () => {
 
       <Route path="/doador" element={<HomeDoador />} />
       <Route path="/doador/editar-perfil" element={<EditarPerfilDoador />} />
-      <Route path="/ong" element={<HomeOng />} />
-      <Route path="/ong/editar-perfil" element={<EditarPerfilOng />} />
-      <Route path="/ong/doacoes" element={<DoacoesRecebidas />} />
+      <Route path="/beneficiario" element={<HomeBeneficiario />} />
+      <Route path="/beneficiario/editar-perfil" element={<EditarPerfilBeneficiario />} />
+      <Route path="/beneficiario/doacoes" element={<DoacoesRecebidas />} />
     </Routes>
   );
 };
