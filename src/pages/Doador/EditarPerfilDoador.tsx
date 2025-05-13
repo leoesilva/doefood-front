@@ -1,11 +1,11 @@
 // src/pages/EditarPerfilDoador.tsx
-import { Button } from "@/components/shadcn/button"
-import { Input } from "@/components/shadcn/input"
-import { Separator } from "@/components/shadcn/separator"
-import Footer from "@/components/Footer"
-import { Link } from "react-router-dom"
+import { Button } from "@/components/shadcn/button";
+import { Input } from "@/components/shadcn/input";
+import { Separator } from "@/components/shadcn/separator";
+import Footer from "@/components/Footer";
+import { Link } from "react-router-dom";
 
-export const EditarPerfilDoador = () => {
+export default function EditarPerfilDoador() {
   return (
     <>
       <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4 py-10">
@@ -43,14 +43,20 @@ export const EditarPerfilDoador = () => {
               <Input type="password" placeholder="********" />
             </div>
 
-            <Button type="submit" className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white text-base">
+            <Button
+              type="submit"
+              className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white text-base"
+            >
               Salvar Alterações
             </Button>
           </form>
 
           <Separator className="my-4" />
 
-          <Link to="/doador" className="text-green-600 hover:underline text-sm flex items-center gap-1 mb-4">
+          <Link
+            to="/doador"
+            className="text-green-600 hover:underline text-sm flex items-center gap-1 mb-4"
+          >
             ← Voltar para o perfil
           </Link>
         </div>
@@ -58,5 +64,5 @@ export const EditarPerfilDoador = () => {
 
       <Footer />
     </>
-  )
+  );
 }

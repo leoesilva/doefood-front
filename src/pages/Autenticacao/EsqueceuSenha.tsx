@@ -1,7 +1,6 @@
-import { Button } from "@/components/shadcn/button"
-import { Input } from "@/components/shadcn/input"
-import { Link } from "react-router-dom"
-
+import { Button } from "@/components/shadcn/button";
+import { Input } from "@/components/shadcn/input";
+import { Link } from "react-router-dom";
 
 export default function EsqueceuSenha() {
   return (
@@ -25,7 +24,10 @@ export default function EsqueceuSenha() {
             />
           </div>
 
-          <Button type="submit" className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2">
+          <Button
+            type="submit"
+            className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2"
+          >
             Enviar instruções
           </Button>
         </form>
@@ -40,5 +42,5 @@ export default function EsqueceuSenha() {
         </div>
       </div>
     </div>
-  )
+  );
 }

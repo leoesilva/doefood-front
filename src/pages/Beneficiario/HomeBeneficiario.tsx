@@ -1,13 +1,18 @@
 // HomeDoador.tsx
 import { Button } from "@/components/shadcn/button";
 import { Separator } from "@/components/shadcn/separator";
-import { FaHandHoldingHeart, FaHistory, FaSignOutAlt, FaUserEdit, FaAward } from "react-icons/fa";
+import {
+  FaHandHoldingHeart,
+  FaHistory,
+  FaSignOutAlt,
+  FaUserEdit,
+} from "react-icons/fa";
 import { Link, Navigate } from "react-router-dom";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 
-export const HomeBeneficiario = () => {
+export default function HomeBeneficiario() {
   const { user, logout } = useAuth();
 
   if (!user) return <Navigate to="/autenticacao/login" />;
@@ -22,7 +27,9 @@ export const HomeBeneficiario = () => {
           </h1>
 
           <div className="text-center text-gray-700 text-lg italic">
-            Sua coragem e confiança são fundamentais para tornar este projeto possível. Juntos, podemos combater a fome e criar um futuro mais justo para todos.
+            Sua coragem e confiança são fundamentais para tornar este projeto
+            possível. Juntos, podemos combater a fome e criar um futuro mais
+            justo para todos.
           </div>
 
           {/* Ações */}
@@ -32,14 +39,13 @@ export const HomeBeneficiario = () => {
                 <FaHandHoldingHeart className="text-2xl" />
                 Buscar Doação
               </Button>
-            </Link >
+            </Link>
 
             <Link to="/beneficiario/historico-doacoes">
               <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
                 <FaHistory className="text-2xl" />
                 Histórico de Doações
               </Button>
-
             </Link>
           </div>
 
@@ -70,4 +76,4 @@ export const HomeBeneficiario = () => {
       <Footer />
     </>
   );
-};
+}
