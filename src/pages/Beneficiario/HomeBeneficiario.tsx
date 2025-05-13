@@ -3,8 +3,14 @@ import { Separator } from "@/components/shadcn/separator";
 import { FaSignOutAlt, FaUserEdit, FaBoxOpen } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import Footer from "@/components/Footer";
+import { useAuth } from '../../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 export const HomeBeneficiario = () => {
+  const { user } = useAuth();
+
+   if (!user) return <Navigate to="/login" />;
+
   return (
     <>
       <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center py-10 px-4">
