@@ -24,8 +24,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
 
   const login = (email: string, senha: string) => {
-    if (email === "teste@doefood.com" && senha === "1234") {
-      setUser({ nome: "Usuário Teste", email });
+    if (email === "doador@doefood.com" && senha === "1234") {
+      setUser({ nome: "Doador Teste", email });
+      return true;
+    } if (email === "beneficiario@doefood.com" && senha === "1234") {
+      setUser({ nome: "Beneficiario Teste", email });
       return true;
     }
     return false;

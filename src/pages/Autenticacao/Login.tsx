@@ -19,7 +19,11 @@ export default function Login() {
     e.preventDefault()
     const sucesso = login(email.trim(), senha.trim());
     if (sucesso) {
-      navigate("/doador") // ou a rota que representa a tela pós-login
+      if (email === "doador@doefood.com" ) {
+        navigate("/doador")
+      } else if (email === "beneficiario@doefood.com") {
+        navigate("/beneficiario")
+      }
     } else {
       setErro("E-mail ou senha inválidos.")
     }
