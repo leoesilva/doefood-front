@@ -19,7 +19,7 @@ export const HomeBeneficiario = () => {
                 <h2 className="text-lg font-semibold text-gray-700">Informações do perfil</h2>
                 <p className="text-sm text-gray-600">Razão Social, CNPJ, E-mail</p>
               </div>
-              <Link to="/ong/editar-perfil">
+              <Link to="/beneficiario/editar-perfil">
                 <Button className="bg-[#FF9800] hover:bg-[#FB8C00] text-white flex gap-2 items-center transition-transform transform hover:scale-105">
                   <FaUserEdit />
                   Editar Perfil
