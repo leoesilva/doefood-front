@@ -1,9 +1,8 @@
-
-import { Button } from "@/components/shadcn/button"
-import { Separator } from "@/components/shadcn/separator"
-import { FaHandHoldingHeart, FaSignOutAlt, FaUserEdit } from "react-icons/fa"
-import { Link } from "react-router-dom"
-import Footer from "@/components/Footer"
+import { Button } from "@/components/shadcn/button";
+import { Separator } from "@/components/shadcn/separator";
+import { FaHandHoldingHeart, FaSignOutAlt, FaUserEdit } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 export const HomeDoador = () => {
   return (
@@ -17,8 +16,12 @@ export const HomeDoador = () => {
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-700">Seus dados</h2>
-                <p className="text-sm text-gray-600">Nome da empresa, CNPJ, E-mail</p>
+                <h2 className="text-lg font-semibold text-gray-700">
+                  Seus dados
+                </h2>
+                <p className="text-sm text-gray-600">
+                  Nome da empresa, CNPJ, E-mail
+                </p>
               </div>
               <Link to="/doador/editar-perfil">
                 <Button className="bg-[#FF9800] hover:bg-[#FB8C00] text-white flex gap-2 items-center transition-transform transform hover:scale-105">
@@ -35,10 +38,12 @@ export const HomeDoador = () => {
               Doações
             </Button>
 
-            <Button className="bg-red-500 hover:bg-red-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
-              <FaSignOutAlt className="text-2xl" />
-              Sair da Conta
-            </Button>
+            <Link to="/">
+              <Button className="bg-red-500 hover:bg-red-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
+                <FaSignOutAlt className="text-2xl" />
+                Sair da Conta
+              </Button>
+            </Link>
           </div>
 
           <Separator className="my-6" />
@@ -51,5 +56,5 @@ export const HomeDoador = () => {
 
       <Footer />
     </>
-  )
-}
+  );
+};
