@@ -10,7 +10,7 @@ export const EditarPerfilBeneficiario = () => {
       <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-8 space-y-6">
           <h1 className="text-3xl font-bold text-[#4CAF50] text-center font-poppins">
-            Editar Perfil da ONG
+            Editar Perfil do Beneficiário
           </h1>
 
           <form className="space-y-4">
@@ -49,7 +49,7 @@ export const EditarPerfilBeneficiario = () => {
 
           <Separator className="my-4" />
 
-          <Link to="/ong" className="block text-center text-sm text-blue-600 hover:underline">
+          <Link to="/beneficiario" className="block text-center text-sm text-blue-600 hover:underline">
             ← Voltar para o perfil
           </Link>
         </div>
