@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
 
@@ -21,19 +21,64 @@ const doacoesMock = [
     data: "2025-04-28",
     doador: "Fazenda Boa Esperança",
   },
+  {
+    id: 3,
+    alimento: "Feijão",
+    quantidade: "8 kg",
+    validade: "2025-07-20",
+    endereco: "Rua Nova, 789 - Bairro Azul",
+    data: "2025-05-05",
+    doador: "Mercado União",
+  },
+  {
+    id: 4,
+    alimento: "Macarrão",
+    quantidade: "12 unidades",
+    validade: "2025-08-01",
+    endereco: "Av. Principal, 321 - Centro",
+    data: "2025-05-03",
+    doador: "Supermercado Bom Preço",
+  },
+  {
+    id: 5,
+    alimento: "Óleo de soja",
+    quantidade: "6 unidades",
+    validade: "2025-09-15",
+    endereco: "Rua das Palmeiras, 456 - Bairro Rosa",
+    data: "2025-05-02",
+    doador: "Distribuidora Alimentos Ltda",
+  },
 ];
 
 export default function HistoricoDoacaoBeneficiario() {
   const navigate = useNavigate();
+  const [filtro, setFiltro] = useState("");
+
+  const doacoesFiltradas = doacoesMock.filter(
+    (doacao) =>
+      doacao.alimento.toLowerCase().includes(filtro.toLowerCase()) ||
+      doacao.doador.toLowerCase().includes(filtro.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gray-50 font-[Roboto]">
       <main className="max-w-6xl mx-auto px-6 py-12 flex-grow">
-        <h1 className="text-3xl font-bold text-green-700 mb-8 text-center">
+        <h1 className="text-3xl font-bold text-green-700 mb-6 text-center">
           Histórico de Doações
         </h1>
 
-        {doacoesMock.length > 0 ? (
+        {/* 🔍 Campo de Filtro */}
+        <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <input
+            type="text"
+            placeholder="Filtrar por alimento ou doador..."
+            className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+          />
+        </div>
+
+        {doacoesFiltradas.length > 0 ? (
           <div className="overflow-x-auto rounded-xl shadow-lg bg-white border border-gray-200">
             <table className="min-w-full text-sm text-gray-700">
               <thead className="bg-green-600 text-white text-left uppercase text-xs tracking-wider">
@@ -47,7 +92,7 @@ export default function HistoricoDoacaoBeneficiario() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
-                {doacoesMock.map((doacao) => (
+                {doacoesFiltradas.map((doacao) => (
                   <tr
                     key={doacao.id}
                     className="hover:bg-green-50 transition duration-150"
@@ -65,7 +110,7 @@ export default function HistoricoDoacaoBeneficiario() {
           </div>
         ) : (
           <div className="text-gray-500 text-center mt-8">
-            Você ainda não recebeu nenhuma doação.
+            Nenhuma doação encontrada.
           </div>
         )}
 
