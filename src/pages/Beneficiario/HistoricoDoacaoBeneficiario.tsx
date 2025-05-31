@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Footer from "@/components/Footer";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/shadcn/button";
 
 const doacoesMock = [
   {
@@ -115,19 +116,20 @@ export default function HistoricoDoacaoBeneficiario() {
       )}
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-        <button
-        onClick={() => navigate(-1)}
-        className="text-green-600 hover:text-green-800 underline transition text-sm"
+        <Button
+          variant="linkGreen"
+          onClick={() => navigate(-1)}
+          className="text-sm"
         >
-        ← Voltar para página anterior
-        </button>
+          ← Voltar para página anterior
+        </Button>
 
-        <button
-        onClick={() => navigate("/beneficiario/buscar-doacao")}
-        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition"
+        <Button
+          variant="green"
+          onClick={() => navigate("/beneficiario/buscar-doacao")}
         >
-        Buscar Doação
-        </button>
+          Buscar Doação
+        </Button>
       </div>
       </main>
 

@@ -137,13 +137,14 @@ export default function NovaDoacao() {
               Enviar Doação
             </Button>
 
-            <button
+            <Button
               type="button"
-              onClick={() => navigate(-1)} // volta para a página anterior
-              className="text-green-600 hover:underline text-sm flex items-center gap-1 mb-4"
+              variant="linkGreen"
+              onClick={() => navigate(-1)}
+              className="text-sm flex items-center gap-1 mb-4"
             >
               ← Voltar
-            </button>
+            </Button>
 
             {mensagem && (
               <div className="mt-4 text-green-700 font-medium bg-green-50 p-3 rounded border border-green-200">

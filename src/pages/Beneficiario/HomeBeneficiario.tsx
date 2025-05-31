@@ -58,17 +58,17 @@ export default function HomeDoador() {
             transition={{ delay: 0.6 }}
           >
             <Link to="/beneficiario/buscar-doacao">
-              <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
+                <Button variant="green" className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
                 <FaHandHoldingHeart className="text-2xl" />
                 Buscar Doação
-              </Button>
+                </Button>
             </Link>
 
             <Link to="/beneficiario/historico-doacao">
-              <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
+                <Button variant="blue" className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
                 <FaHistory className="text-2xl" />
                 Histórico de Doações
-              </Button>
+                </Button>
             </Link>
           </motion.div>
 
@@ -79,15 +79,16 @@ export default function HomeDoador() {
             transition={{ delay: 0.8 }}
           >
             <Link to="/beneficiario/editar-perfil">
-              <Button className="bg-[#FF9800] hover:bg-[#FB8C00] text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
+                <Button variant="orange" className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
                 <FaUserEdit className="text-2xl" />
                 Editar Perfil
-              </Button>
+                </Button>
             </Link>
 
             <Button
+              variant="red"
               onClick={logout}
-              className="bg-red-500 hover:bg-red-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105"
+              className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105"
             >
               <FaSignOutAlt className="text-2xl" />
               Sair da Conta

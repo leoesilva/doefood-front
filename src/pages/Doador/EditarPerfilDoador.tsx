@@ -54,12 +54,13 @@ export default function EditarPerfilDoador() {
 
           <Separator className="my-4" />
 
-          <Link
-            to="/doador"
-            className="text-green-600 hover:underline text-sm flex items-center gap-1 mb-4"
-          >
-            ← Voltar para o perfil
-          </Link>
+            <Button
+            asChild
+            variant="linkGreen"
+            className="text-sm flex items-center gap-1 mb-4"
+            >
+            <Link to="/doador">← Voltar para o perfil</Link>
+            </Button>
         </div>
       </main>
 

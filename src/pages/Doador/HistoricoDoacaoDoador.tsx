@@ -89,12 +89,13 @@ export default function HistoricoDoacaoDoador() {
         )}
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-          <button
+            <Button
             onClick={() => navigate(-1)}
-            className="text-green-600 hover:text-green-800 underline transition text-sm"
-          >
+            variant="linkGreen"
+            className="text-sm"
+            >
             ← Voltar para página anterior
-          </button>
+            </Button>
             <Button
             onClick={() => navigate("/doador/nova-doacao")}
             variant="green"

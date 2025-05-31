@@ -42,16 +42,18 @@ export default function EditarPerfilBeneficiario() {
               <Input type="password" placeholder="********" />
             </div>
 
-            <Button type="submit" className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white text-base">
+            <Button type="submit" variant="green" className="w-full text-white text-base">
               Salvar Alterações
             </Button>
           </form>
 
           <Separator className="my-4" />
 
-          <Link to="/beneficiario" className="block text-center text-sm text-blue-600 hover:underline">
-            ← Voltar para o perfil
-          </Link>
+            <Button asChild variant="linkGreen" className="w-full text-base">
+            <Link to="/beneficiario">
+              ← Voltar para o perfil
+            </Link>
+            </Button>
         </div>
       </main>
 
