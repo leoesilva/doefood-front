@@ -102,7 +102,8 @@ const BuscarDoacao = () => {
             />
             <Button
               onClick={handleSearch}
-              className="bg-[#4CAF50] hover:bg-[#43A047] text-white py-3 px-6 rounded-xl flex items-center gap-2"
+              variant="green"
+              className="py-3 px-6 rounded-xl flex items-center gap-2"
             >
               <FaSearch className="text-xl" />
               Buscar
@@ -141,30 +142,33 @@ const BuscarDoacao = () => {
           {/* Botões */}
           <div className="space-y-6 mt-8">
             <div className="grid md:grid-cols-2 gap-4">
-              <Button
+                <Button
                 onClick={handleVerProximas}
-                className="bg-[#4CAF50] hover:bg-[#43A047] text-white py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
-              >
+                variant="green"
+                className="py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
+                >
                 <FaMapMarkerAlt />
                 Ver Doações Próximas
-              </Button>
+                </Button>
 
-              <Button
+                <Button
                 onClick={handleVerPorCategoria}
-                className="bg-blue-500 hover:bg-blue-600 text-white py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
-              >
+                variant="blue"
+                className="py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
+                >
                 <FaListAlt />
                 Ver Doações por Categoria
-              </Button>
+                </Button>
             </div>
 
             <div className="text-center md:text-left">
-              <button
+                <Button
+                variant="linkGreen"
                 onClick={() => navigate(-1)}
-                className="text-green-600 hover:text-green-800 underline transition text-sm"
-              >
+                className="text-sm"
+                >
                 ← Voltar para página anterior
-              </button>
+                </Button>
             </div>
           </div>
         </div>
