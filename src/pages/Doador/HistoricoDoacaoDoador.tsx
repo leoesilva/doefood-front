@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import Footer from "@/components/Footer";
+import { Button } from "@/components/shadcn/button";
 import { useNavigate } from "react-router-dom";
 
 const doacoesMock = [
@@ -25,6 +26,13 @@ const doacoesMock = [
 
 export default function HistoricoDoacaoDoador() {
   const navigate = useNavigate();
+  const [filtro, setFiltro] = useState("");
+  
+    const doacoesFiltradas = doacoesMock.filter(
+      (doacao) =>
+        doacao.alimento.toLowerCase().includes(filtro.toLowerCase()) ||
+        doacao.beneficiario.toLowerCase().includes(filtro.toLowerCase())
+    );
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gray-50 font-[Roboto]">
@@ -33,7 +41,18 @@ export default function HistoricoDoacaoDoador() {
           Histórico de Doações
         </h1>
 
-        {doacoesMock.length > 0 ? (
+        {/* 🔍 Campo de Filtro */}
+        <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <input
+            type="text"
+            placeholder="Filtrar por alimento ou beneficiário..."
+            className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            value={filtro}
+            onChange={(e) => setFiltro(e.target.value)}
+          />
+        </div>
+
+        {doacoesFiltradas.length > 0 ? (
           <div className="overflow-x-auto rounded-xl shadow-lg bg-white border border-gray-200">
             <table className="min-w-full text-sm text-gray-700">
               <thead className="bg-green-600 text-white text-left uppercase text-xs tracking-wider">
@@ -47,7 +66,7 @@ export default function HistoricoDoacaoDoador() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
-                {doacoesMock.map((doacao) => (
+                {doacoesFiltradas.map((doacao) => (
                   <tr
                     key={doacao.id}
                     className="hover:bg-green-50 transition duration-150"
@@ -65,7 +84,7 @@ export default function HistoricoDoacaoDoador() {
           </div>
         ) : (
           <div className="text-gray-500 text-center mt-8">
-            Você ainda não fez nenhuma doação.
+            Você ainda não fez nenhuma doação ou nenhum resultado foi encontrado.
           </div>
         )}
 
@@ -76,13 +95,13 @@ export default function HistoricoDoacaoDoador() {
           >
             ← Voltar para página anterior
           </button>
-
-          <button
+            <Button
             onClick={() => navigate("/doador/nova-doacao")}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition"
-          >
+            variant="green"
+            className="transition"
+            >
             Nova Doação
-          </button>
+            </Button>
         </div>
       </main>
 

@@ -21,13 +21,13 @@ export default function HomeDoador() {
     <>
       <Navbar />
       <main className="min-h-screen relative flex items-center justify-center py-10 px-4 overflow-hidden">
-        {/* 🎨 Fundo criativo */}
+        {/* 🎨 Fundo criativo
         <img
           src="https://i.ibb.co/3vFWrNR/food-donation-bg.jpg"
           alt="Fundo doação de alimentos"
           className="absolute inset-0 w-full h-full object-cover brightness-75"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#ffffff80] via-[#ffffffcc] to-[#f5f5f5f0] backdrop-blur-sm"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-[#ffffff80] via-[#ffffffcc] to-[#f5f5f5f0] backdrop-blur-sm"></div> */}
 
         {/* 🔥 Conteúdo principal */}
         <div className="w-full max-w-5xl bg-white bg-opacity-90 shadow-2xl rounded-3xl p-10 space-y-10 relative z-10">

@@ -1,4 +1,3 @@
-// HomeDoador.tsx
 import { Button } from "@/components/shadcn/button";
 import { Separator } from "@/components/shadcn/separator";
 import {
@@ -18,11 +17,14 @@ export default function HomeDoador() {
 
   if (!user) return <Navigate to="/autenticacao/login" />;
 
+  const btnClass =
+    "w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105";
+
   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center py-10 px-4">
-        <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-8 space-y-10">
+        <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-8 space-y-10 animate-fade-in-up">
           <h1 className="text-4xl font-bold text-[#4CAF50] text-center font-poppins">
             Obrigado por fazer a diferença 💚
           </h1>
@@ -33,7 +35,7 @@ export default function HomeDoador() {
           </div>
 
           {/* Certificado */}
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6 shadow-inner flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 shadow-inner flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up delay-100">
             <div className="flex items-center gap-4">
               <FaAward className="text-4xl text-[#FF9800]" />
               <div>
@@ -45,40 +47,37 @@ export default function HomeDoador() {
                 </p>
               </div>
             </div>
-            <Button className="bg-[#FF9800] hover:bg-[#FB8C00] text-white">
+            <Button variant="orange" className="px-6 py-4 text-base rounded-xl transition-transform hover:scale-105">
               Baixar Certificado
             </Button>
           </div>
 
           {/* Ações */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 animate-fade-in-up delay-200">
             <Link to="/doador/nova-doacao">
-              <Button className="bg-[#4CAF50] hover:bg-[#43A047] text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
+              <Button variant="green" className={btnClass}>
                 <FaHandHoldingHeart className="text-2xl" />
                 Nova Doação
               </Button>
             </Link>
 
             <Link to="/doador/historico-doacao">
-              <Button className="bg-blue-500 hover:bg-blue-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
+              <Button variant="blue" className={btnClass}>
                 <FaHistory className="text-2xl" />
                 Histórico de Doações
               </Button>
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 animate-fade-in-up delay-300">
             <Link to="/doador/editar-perfil">
-              <Button className="bg-[#FF9800] hover:bg-[#FB8C00] text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105">
+              <Button variant="orange" className={btnClass}>
                 <FaUserEdit className="text-2xl" />
                 Editar Perfil
               </Button>
             </Link>
 
-            <Button
-              onClick={logout}
-              className="bg-red-500 hover:bg-red-600 text-white w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105"
-            >
+            <Button variant="red" onClick={logout} className={btnClass}>
               <FaSignOutAlt className="text-2xl" />
               Sair da Conta
             </Button>
@@ -86,7 +85,7 @@ export default function HomeDoador() {
 
           <Separator className="my-6" />
 
-          <div className="text-center text-sm text-gray-500 italic">
+          <div className="text-center text-sm text-gray-500 italic animate-fade-in-up delay-400">
             Doe com responsabilidade e ajude quem precisa 💚
           </div>
         </div>
