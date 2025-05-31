@@ -78,7 +78,7 @@ export default function HistoricoDoacaoDoador() {
           </button>
 
           <button
-            onClick={() => navigate("/nova-doacao")}
+            onClick={() => navigate("/doador/nova-doacao")}
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition"
           >
             Nova Doação
