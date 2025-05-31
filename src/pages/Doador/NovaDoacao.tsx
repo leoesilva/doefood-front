@@ -2,6 +2,7 @@
 import Footer from "@/components/Footer";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/shadcn/button";
 import ilustracao from "@/assets/doacao-ilustracao.webp"; // Imagem de doação
 
 export default function NovaDoacao() {
@@ -129,12 +130,12 @@ export default function NovaDoacao() {
               />
             </div>
 
-            <button
+            <Button
               type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow transition block mx-auto"
+              variant="green"
             >
               Enviar Doação
-            </button>
+            </Button>
 
             <button
               type="button"

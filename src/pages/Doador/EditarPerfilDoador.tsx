@@ -45,7 +45,8 @@ export default function EditarPerfilDoador() {
 
             <Button
               type="submit"
-              className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white text-base"
+              variant="green"
+              className="w-full text-base"
             >
               Salvar Alterações
             </Button>

@@ -1,5 +1,5 @@
 // BuscarDoacao.tsx
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { FaSearch, FaMapMarkerAlt, FaListAlt } from "react-icons/fa";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
