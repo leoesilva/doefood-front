@@ -12,24 +12,20 @@ import Navbar from "@/components/Navbar";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 
-export default function HomeDoador() {
+export default function HomeBeneficiario() {
   const { user, logout } = useAuth();
 
   if (!user) return <Navigate to="/autenticacao/login" />;
+
+
+  const btnClass =
+    "w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform hover:scale-105";
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen relative flex items-center justify-center py-10 px-4 overflow-hidden">
-        {/* 🎨 Fundo criativo
-        <img
-          src="https://i.ibb.co/3vFWrNR/food-donation-bg.jpg"
-          alt="Fundo doação de alimentos"
-          className="absolute inset-0 w-full h-full object-cover brightness-75"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#ffffff80] via-[#ffffffcc] to-[#f5f5f5f0] backdrop-blur-sm"></div> */}
-
-        {/* 🔥 Conteúdo principal */}
+  
         <div className="w-full max-w-5xl bg-white bg-opacity-90 shadow-2xl rounded-3xl p-10 space-y-10 relative z-10">
           <motion.h1
             className="text-4xl md:text-5xl font-bold text-[#4CAF50] text-center font-poppins"
@@ -50,7 +46,7 @@ export default function HomeDoador() {
             para quem mais precisa. Sua solidariedade muda vidas!
           </motion.p>
 
-          {/* ⭐ Ações principais */}
+          {/* Ações principais */}
           <motion.div
             className="grid md:grid-cols-2 gap-6"
             initial={{ opacity: 0, y: 20 }}
@@ -58,17 +54,17 @@ export default function HomeDoador() {
             transition={{ delay: 0.6 }}
           >
             <Link to="/beneficiario/buscar-doacao">
-                <Button variant="green" className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
+              <Button variant="green" className={btnClass}>
                 <FaHandHoldingHeart className="text-2xl" />
                 Buscar Doação
-                </Button>
+              </Button>
             </Link>
 
             <Link to="/beneficiario/historico-doacao">
-                <Button variant="blue" className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
+              <Button variant="blue" className={btnClass}>
                 <FaHistory className="text-2xl" />
                 Histórico de Doações
-                </Button>
+              </Button>
             </Link>
           </motion.div>
 
@@ -79,16 +75,16 @@ export default function HomeDoador() {
             transition={{ delay: 0.8 }}
           >
             <Link to="/beneficiario/editar-perfil">
-                <Button variant="orange" className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105">
+              <Button variant="orange" className={btnClass}>
                 <FaUserEdit className="text-2xl" />
                 Editar Perfil
-                </Button>
+              </Button>
             </Link>
 
             <Button
               variant="red"
               onClick={logout}
-              className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-2xl shadow-lg transition-transform hover:scale-105"
+              className={btnClass}
             >
               <FaSignOutAlt className="text-2xl" />
               Sair da Conta
