@@ -1,33 +1,37 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { useAuth } from "@/context/AuthContext" // ajuste o caminho conforme sua estrutura
-import { Button } from "@/components/shadcn/button"
-import { Input } from "@/components/shadcn/input"
-import { Separator } from "@/components/shadcn/separator"
-import { FcGoogle } from "react-icons/fc"
-import { Link } from "react-router-dom"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebaseConfig";
+import { Button } from "@/components/shadcn/button";
+import { Input } from "@/components/shadcn/input";
+import { Separator } from "@/components/shadcn/separator";
+import { FcGoogle } from "react-icons/fc";
+import { Link } from "react-router-dom";
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [senha, setSenha] = useState("")
-  const [erro, setErro] = useState("")
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
 
-  const { login } = useAuth()
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const sucesso = login(email.trim(), senha.trim());
-    if (sucesso) {
-      if (email === "doador@doefood.com" ) {
-        navigate("/doador")
-      } else if (email === "beneficiario@doefood.com") {
-        navigate("/beneficiario")
-      }
-    } else {
-      setErro("E-mail ou senha inválidos.")
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErro("");
+
+    try {
+      await signInWithEmailAndPassword(auth, email.trim(), senha.trim());
+      navigate("/"); // Redirecionamento padrão após login
+    } catch (error: unknown) {
+  if (error instanceof Error) {
+    // Resposta segura ao usuário
+    setErro("E-mail ou senha inválidos.");
   }
+}
+    // Limpa os campos após o login bem-sucedido
+    setEmail("");
+    setSenha("");
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
@@ -49,9 +53,7 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              E-mail
-            </label>
+            <label htmlFor="email" className="block text-sm font-medium">E-mail</label>
             <Input
               id="email"
               type="email"
@@ -63,9 +65,7 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="senha" className="block text-sm font-medium">
-              Senha
-            </label>
+            <label htmlFor="senha" className="block text-sm font-medium">Senha</label>
             <Input
               id="senha"
               type="password"
@@ -79,10 +79,7 @@ export default function Login() {
                 <input type="checkbox" className="accent-blue-600 h-4 w-4" />
                 Lembrar-me
               </label>
-              <Link
-                to="/autenticacao/esqueci-senha"
-                className="text-sm text-blue-600 hover:underline"
-              >
+              <Link to="/autenticacao/esqueci-senha" className="text-sm text-blue-600 hover:underline">
                 Esqueceu a senha?
               </Link>
             </div>
@@ -100,21 +97,15 @@ export default function Login() {
 
         <p className="text-sm text-center mt-4">
           Não tem uma conta?{" "}
-          <Link
-            to="/autenticacao/criar-conta"
-            className="text-blue-600 hover:underline"
-          >
+          <Link to="/autenticacao/criar-conta" className="text-blue-600 hover:underline">
             Cadastre-se
           </Link>
         </p>
 
-        <Link
-          to="/"
-          className="block mt-4 text-sm text-blue-600 hover:underline text-center"
-        >
+        <Link to="/" className="block mt-4 text-sm text-blue-600 hover:underline text-center">
           ← Voltar para a página inicial
         </Link>
       </div>
     </div>
-  )
+  );
 }
