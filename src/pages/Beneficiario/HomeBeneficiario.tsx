@@ -50,7 +50,7 @@ export default function HomeDoador() {
             para quem mais precisa. Sua solidariedade muda vidas!
           </motion.p>
 
-          {/* ⭐ Ações principais */}
+          {/*  Ações principais */}
           <motion.div
             className="grid md:grid-cols-2 gap-6"
             initial={{ opacity: 0, y: 20 }}

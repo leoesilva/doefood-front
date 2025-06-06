@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebaseConfig";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
@@ -108,14 +108,14 @@ export default function CriarConta() {
       const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), senha.trim());
       const user = userCredential.user;
 
-      await addDoc(collection(db, "usuarios"), {
-        uid: user.uid,
+      await setDoc(doc(db, "usuarios", user.uid), {
         nome,
         cnpj,
         endereco,
         email,
         tipo
       });
+
 
       navigate("/autenticacao/login");
     } catch (error: unknown) {
