@@ -13,21 +13,21 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
 
-  const navigate = useNavigate();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
 
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), senha.trim());
-      navigate("/"); // Redirecionamento padrão após login
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), senha.trim());
+      const token = await userCredential.user.getIdToken();
+      localStorage.setItem("token", token);
+      alert(`Login realizado com sucesso! Token salvo: ${token}`);
     } catch (error: unknown) {
-  if (error instanceof Error) {
-    // Resposta segura ao usuário
-    setErro("E-mail ou senha inválidos.");
-  }
-}
+      if (error instanceof Error) {
+        // Resposta segura ao usuário
+        setErro("E-mail ou senha inválidos.");
+      }
+    }
     // Limpa os campos após o login bem-sucedido
     setEmail("");
     setSenha("");
