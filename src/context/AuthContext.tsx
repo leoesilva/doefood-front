@@ -1,3 +1,18 @@
+
+/**
+ * AuthContext.tsx
+ * 
+ * Caminho do arquivo: /src/context/AuthContext.tsx
+ * 
+ * Este arquivo define o contexto de autenticação para a aplicação React.
+ * 
+ * - Define as interfaces `User` e `AuthContextType` para tipagem dos dados do usuário e das funções de autenticação.
+ * - Cria o contexto `AuthContext` com valores padrão.
+ * - Fornece o componente `AuthProvider` para encapsular a aplicação e disponibilizar o contexto.
+ * - Implementa as funções `login` e `logout` para manipulação do estado de autenticação.
+ * - Exporta o hook `useAuth` para facilitar o acesso ao contexto em outros componentes.
+ */
+
 import { createContext, useContext, useState, ReactNode } from 'react'
 
 // 1. Definindo a interface dos dados do usuário e do contexto

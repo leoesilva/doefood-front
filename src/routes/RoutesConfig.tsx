@@ -1,4 +1,17 @@
+
+/**
+ * /src/routes/RoutesConfig.tsx
+ *
+ * Configures the application's route structure using React Router.
+ * Defines public, authentication, donor, and beneficiary routes,
+ * mapping each path to its respective page component.
+ *
+ * @returns {JSX.Element} The set of application routes.
+ */
+
 import { Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute"; // 
+
 
 // Páginas públicas
 import Home from "../pages/Home";
@@ -26,22 +39,78 @@ const RoutesConfig = () => {
       {/* Página inicial pública */}
       <Route path="/" element={<Home />} />
 
-      {/*  Autenticação */}
+      {/* Autenticação */}
       <Route path="/autenticacao/login" element={<Login />} />
       <Route path="/autenticacao/criar-conta" element={<CriarConta />} />
       <Route path="/autenticacao/esqueci-senha" element={<EsqueceuSenha />} />
 
-      {/*  Rotas do Doador */}
-      <Route path="/doador" element={<HomeDoador />} />
-      <Route path="/doador/nova-doacao" element={<NovaDoacao />} />
-      <Route path="/doador/historico-doacao" element={<HistoricoDoacaoDoador />} />
-      <Route path="/doador/editar-perfil" element={<EditarPerfilDoador />} />
+      {/* Rotas do Doador */}
+      <Route
+        path="/doador"
+        element={
+          <ProtectedRoute allowedTipo="doador">
+            <HomeDoador />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doador/nova-doacao"
+        element={
+          <ProtectedRoute allowedTipo="doador">
+            <NovaDoacao />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doador/historico-doacao"
+        element={
+          <ProtectedRoute allowedTipo="doador">
+            <HistoricoDoacaoDoador />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doador/editar-perfil"
+        element={
+          <ProtectedRoute allowedTipo="doador">
+            <EditarPerfilDoador />
+          </ProtectedRoute>
+        }
+      />
 
-      {/*  Rotas do Beneficiário */}
-      <Route path="/beneficiario" element={<HomeBeneficiario />} />
-      <Route path="/beneficiario/buscar-doacao" element={<BuscarDoacao />} />
-      <Route path="/beneficiario/historico-doacao" element={<HistoricoDoacaoBeneficiario />} />
-      <Route path="/beneficiario/editar-perfil" element={<EditarPerfilBeneficiario />} />
+      {/* Rotas do Beneficiário */}
+      <Route
+        path="/beneficiario"
+        element={
+          <ProtectedRoute allowedTipo="beneficiario">
+            <HomeBeneficiario />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/beneficiario/buscar-doacao"
+        element={
+          <ProtectedRoute allowedTipo="beneficiario">
+            <BuscarDoacao />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/beneficiario/historico-doacao"
+        element={
+          <ProtectedRoute allowedTipo="beneficiario">
+            <HistoricoDoacaoBeneficiario />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/beneficiario/editar-perfil"
+        element={
+          <ProtectedRoute allowedTipo="beneficiario">
+            <EditarPerfilBeneficiario />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 };
