@@ -50,6 +50,7 @@ export default function NovaDoacao() {
         validade: formData.validade,
         doadorId: uid,
         dataCriacao: new Date().toISOString(),
+        disponivel: true, // campo oculto indicando disponibilidade
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {
