@@ -7,6 +7,27 @@ import Footer from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { Pencil } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Máscaras
+const formatarCNPJ = (valor: string) => {
+  return valor
+    .replace(/\D/g, "")
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2")
+    .slice(0, 18);
+};
+
+const formatarCep = (value: string) => {
+  const onlyNums = value.replace(/\D/g, "");
+  if (onlyNums.length > 5) {
+    return onlyNums.slice(0, 5) + "-" + onlyNums.slice(5, 8);
+  }
+  return onlyNums;
+};
 
 export default function EditarPerfilDoador() {
   const [formData, setFormData] = useState({
@@ -24,9 +45,8 @@ export default function EditarPerfilDoador() {
     tipo: "",
   });
 
-  // Controla quais campos estão editáveis
   const [editavel, setEditavel] = useState<{ [key: string]: boolean }>({});
-  const [enderecoBloqueado, setEnderecoBloqueado] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     const fetchPerfil = async () => {
@@ -46,20 +66,20 @@ export default function EditarPerfilDoador() {
         );
         if (!response.ok) throw new Error("Erro ao buscar perfil");
         const data = await response.json();
-        // Sempre pega o email do usuário autenticado
         setFormData((prev) => ({
           ...prev,
           ...data,
           email: currentUser.email || prev.email || "",
         }));
       } catch (err) {
+        toast.error("Erro ao buscar perfil.");
         console.error(err);
       }
     };
     fetchPerfil();
   }, []);
 
-  // Função para buscar endereço pelo CEP
+  // Busca endereço pelo CEP
   const buscarEnderecoPorCep = async (cep: string) => {
     try {
       const cepLimpo = cep.replace(/\D/g, "");
@@ -67,7 +87,17 @@ export default function EditarPerfilDoador() {
       const response = await fetch(
         `https://brasilapi.com.br/api/cep/v1/${cepLimpo}`
       );
-      if (!response.ok) return;
+      if (!response.ok) {
+        setFormData((prev) => ({
+          ...prev,
+          logradouro: "",
+          bairro: "",
+          municipio: "",
+          estado: "",
+        }));
+        toast.error("CEP não encontrado.");
+        return;
+      }
       const data = await response.json();
       setFormData((prev) => ({
         ...prev,
@@ -76,40 +106,81 @@ export default function EditarPerfilDoador() {
         municipio: data.city || "",
         estado: data.state || "",
       }));
-      setEnderecoBloqueado(true); // Bloqueia os campos após busca
+      // Limpa os erros dos campos de endereço ao preencher corretamente
+      setErrors((prev) => ({
+        ...prev,
+        logradouro: "",
+        bairro: "",
+        municipio: "",
+        estado: "",
+      }));
     } catch {
-      // Se o CEP não existir, apenas não preenche nada
+      setFormData((prev) => ({
+        ...prev,
+        logradouro: "",
+        bairro: "",
+        municipio: "",
+        estado: "",
+      }));
+      toast.error("CEP não encontrado.");
     }
   };
 
   // Atualiza o formData e busca endereço se for o campo CEP
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Máscaras
+    let valor = value;
+    if (name === "cnpj") valor = formatarCNPJ(value);
+    if (name === "cep") valor = formatarCep(value);
+    if (name === "estado") valor = value.toUpperCase().slice(0, 2);
+
+    setFormData((prev) => ({ ...prev, [name]: valor }));
 
     if (name === "cep") {
-      const cepLimpo = value.replace(/\D/g, "");
+      const cepLimpo = valor.replace(/\D/g, "");
       if (cepLimpo.length === 8) {
         buscarEnderecoPorCep(cepLimpo);
       }
     }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // Torna o campo editável ao clicar no lápis
   const handleEdit = (campo: string) => {
     setEditavel((prev) => ({ ...prev, [campo]: !prev[campo] }));
   };
 
-  // Torna todos os campos não editáveis após salvar
+  // Validação dos campos obrigatórios
+  const validarCampos = () => {
+    const novosErros: { [key: string]: string } = {};
+    if (!formData.cnpj || formData.cnpj.replace(/\D/g, "").length !== 14)
+      novosErros.cnpj = "CNPJ inválido. Deve conter 14 dígitos.";
+    if (!formData.razaoSocial) novosErros.razaoSocial = "Razão Social é obrigatória.";
+    if (!formData.nomeFantasia) novosErros.nomeFantasia = "Nome Fantasia é obrigatória.";
+    if (!formData.cep) novosErros.cep = "CEP é obrigatório.";
+    if (!formData.logradouro) novosErros.logradouro = "Logradouro é obrigatório.";
+    if (!formData.bairro) novosErros.bairro = "Bairro é obrigatório.";
+    if (!formData.municipio) novosErros.municipio = "Município é obrigatório.";
+    if (!formData.estado) novosErros.estado = "Estado é obrigatório.";
+    if (!formData.numero) novosErros.numero = "Número é obrigatório.";
+    return novosErros;
+  };
+
   const handleSalvar = async (e: React.FormEvent) => {
     e.preventDefault();
+    const novosErros = validarCampos();
+    if (Object.keys(novosErros).length > 0) {
+      setErrors(novosErros);
+      toast.error("Preencha todos os campos obrigatórios corretamente.");
+      return; 
+    }
     try {
       const token = localStorage.getItem("token");
       const auth = getAuth();
       const currentUser = auth.currentUser;
       if (!token || !currentUser) return;
       const uid = currentUser.uid;
-      // Não envie email, tipo ou senha para atualização
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { email, tipo, ...dadosEditaveis } = formData;
       await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${uid}`, {
@@ -121,15 +192,45 @@ export default function EditarPerfilDoador() {
         body: JSON.stringify(dadosEditaveis),
       });
       setEditavel({});
-      alert("Perfil atualizado com sucesso!");
+      toast.success("Perfil atualizado com sucesso!");
     } catch (err) {
-      alert("Erro ao salvar alterações.");
+      toast.error("Erro ao salvar alterações.");
       console.error(err);
     }
   };
 
+  const isSalvarDesabilitado = () => {
+    // Verifica se há erros
+    if (Object.keys(errors).some((key) => errors[key])) return true;
+    // Verifica se algum campo obrigatório está vazio
+    if (
+      !formData.cnpj ||
+      formData.cnpj.replace(/\D/g, "").length !== 14 ||
+      !formData.razaoSocial ||
+      !formData.nomeFantasia ||
+      !formData.cep ||
+      !formData.logradouro ||
+      !formData.bairro ||
+      !formData.municipio ||
+      !formData.estado ||
+      !formData.numero
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   // Campos que nunca podem ser editados
-  const camposSomenteLeitura = ["email", "tipo", "cnpj", "razaoSocial"];
+  const camposSomenteLeitura = [
+    "email",
+    "tipo",
+    "cnpj",
+    "razaoSocial",
+    "logradouro",
+    "bairro",
+    "municipio",
+    "estado",
+  ];
 
   // Lista de campos do formulário (ordem e labels iguais ao CriarConta)
   const campos = [
@@ -149,6 +250,7 @@ export default function EditarPerfilDoador() {
 
   return (
     <>
+      <ToastContainer />
       <main className="min-h-screen bg-[#F5F5F5] flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-8 space-y-6">
           <h1 className="text-3xl font-bold text-[#4CAF50] text-center font-poppins">
@@ -195,6 +297,9 @@ export default function EditarPerfilDoador() {
                       <Pencil size={18} />
                     </button>
                   )}
+                  {errors[campo.name] && (
+                    <p className="text-sm text-red-500 mt-1">{errors[campo.name]}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -203,6 +308,7 @@ export default function EditarPerfilDoador() {
               type="submit"
               variant="green"
               className="w-full text-base mt-4"
+              disabled={isSalvarDesabilitado()}
             >
               Salvar Alterações
             </Button>
