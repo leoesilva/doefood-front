@@ -44,12 +44,13 @@ export default function NovaDoacao() {
       }
       const uid = currentUser.uid;
 
-      // Monta o objeto da doação com o UID do doador
+      // Monta o objeto da doação com data/hora atual
       const doacao = {
         alimento: formData.alimento,
         quantidade: formData.quantidade,
         validade: formData.validade,
-        doadorId: uid, // ou "usuarioId", conforme esperado pelo backend
+        doadorId: uid,
+        dataCriacao: new Date().toISOString(), // <-- Adiciona data/hora atual
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {

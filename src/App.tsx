@@ -1,7 +1,8 @@
 import { BrowserRouter as Router } from "react-router-dom";
 import RoutesConfig from "./routes/RoutesConfig";
 import { AuthProvider } from "./context/AuthContext"; // ajuste o caminho conforme necessário
-import 'antd/dist/reset.css';
+import { ToastContainer } from "react-toastify";
+
 
 function App() {
   return (
@@ -9,7 +10,9 @@ function App() {
       <Router>
         <RoutesConfig />
       </Router>
+      <ToastContainer />
     </AuthProvider>
+    
   );
 }
 

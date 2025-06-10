@@ -16,14 +16,11 @@ export default function HistoricoDoacaoDoador() {
     validade: string;
     beneficiario?: string;
     endereco?: string;
-    data?: string;
+    dataCriacao?: string;
   }
 
   const [doacoes, setDoacoes] = useState<Doacao[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const btnClass =
-    "w-full flex items-center justify-center gap-3 py-2 text-lg rounded-xl transition-transform transform hover:scale-105";
 
   useEffect(() => {
     const fetchDoacoes = async () => {
@@ -48,7 +45,6 @@ export default function HistoricoDoacaoDoador() {
         );
         if (!response.ok) throw new Error("Erro ao buscar doações");
         const data = await response.json();
-        console.log("Doações recebidas:", data); // Adicione este log
         setDoacoes(data);
       } catch (err) {
         console.error(err);
@@ -60,34 +56,39 @@ export default function HistoricoDoacaoDoador() {
     fetchDoacoes();
   }, []);
 
+  // Filtro global (alimento ou beneficiario)
   const doacoesFiltradas = doacoes.filter(
     (doacao) =>
       doacao.alimento?.toLowerCase().includes(filtro.toLowerCase()) ||
-      doacao.beneficiario?.toLowerCase().includes(filtro.toLowerCase())
+      (doacao.beneficiario || "").toLowerCase().includes(filtro.toLowerCase())
   );
 
-  // Defina as colunas para o Ant Design Table
+  // Colunas da tabela
   const columns = [
-    { title: "Alimento", dataIndex: "alimento", key: "alimento" },
-    { title: "Quantidade", dataIndex: "quantidade", key: "quantidade" },
-    { title: "Validade", dataIndex: "validade", key: "validade" },
+    { title: "Alimento", dataIndex: "alimento", key: "alimento", responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
+    { title: "Quantidade", dataIndex: "quantidade", key: "quantidade", responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
+    {
+      title: "Validade",
+      dataIndex: "validade",
+      key: "validade",
+      render: (text: string) =>
+        text ? new Date(text).toLocaleDateString("pt-BR") : "-",
+      responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+    },
     {
       title: "Beneficiário",
       dataIndex: "beneficiario",
       key: "beneficiario",
       render: (text: string) => text || "-",
-    },
-    {
-      title: "Endereço",
-      dataIndex: "endereco",
-      key: "endereco",
-      render: (text: string) => text || "-",
+      responsive: ['md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
     },
     {
       title: "Doado em",
-      dataIndex: "data",
-      key: "data",
-      render: (text: string) => text || "-",
+      dataIndex: "dataCriacao",
+      key: "dataCriacao",
+      render: (text: string) =>
+        text ? new Date(text).toLocaleString("pt-BR") : "-",
+      responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
     },
   ];
 
@@ -98,12 +99,12 @@ export default function HistoricoDoacaoDoador() {
           Histórico de Doações
         </h1>
 
-        {/* 🔍 Campo de Filtro */}
+        {/* 🔍 Campo de Filtro Global */}
         <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <input
             type="text"
             placeholder="Filtrar por alimento ou beneficiário..."
-            className="w-full sm:w-1/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full sm:w-2/3 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600"
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
           />
@@ -119,6 +120,7 @@ export default function HistoricoDoacaoDoador() {
               "Você ainda não fez nenhuma doação ou nenhum resultado foi encontrado.",
           }}
           pagination={{ pageSize: 10 }}
+          scroll={{ x: true }} // Responsividade horizontal
         />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
@@ -132,13 +134,12 @@ export default function HistoricoDoacaoDoador() {
           <Button
             onClick={() => navigate("/doador/nova-doacao")}
             variant="green"
-            className={btnClass}
+            className="w-full flex items-center justify-center gap-3 py-2 text-lg rounded-xl transition-transform transform hover:scale-105"
           >
             Nova Doação
           </Button>
         </div>
       </main>
-
       <Footer />
     </div>
   );
