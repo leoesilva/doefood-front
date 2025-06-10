@@ -3,7 +3,9 @@ import Footer from "@/components/Footer";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/shadcn/button";
-import ilustracao from "@/assets/doacao-ilustracao.webp"; // Imagem de doação
+import ilustracao from "@/assets/doacao-ilustracao.webp"; 
+import { getAuth } from "firebase/auth";
+
 
 export default function NovaDoacao() {
   const navigate = useNavigate();
@@ -11,8 +13,6 @@ export default function NovaDoacao() {
     alimento: "",
     quantidade: "",
     validade: "",
-    beneficiario: "",
-    endereco: "",
   });
 
   const [mensagem, setMensagem] = useState("");
@@ -24,12 +24,69 @@ export default function NovaDoacao() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Doação cadastrada:", formData);
-    setMensagem("✅ Doação registrada com sucesso!");
-    setTimeout(() => navigate("/home-doador"), 2000);
+    setMensagem(""); // Limpa mensagem anterior
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setMensagem("Você precisa estar autenticado para doar.");
+        return;
+      }
+
+      // Recupera o UID do usuário autenticado
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setMensagem("Usuário não autenticado.");
+        return;
+      }
+      const uid = currentUser.uid;
+
+      // Monta o objeto da doação com o UID do doador
+      const doacao = {
+        alimento: formData.alimento,
+        quantidade: formData.quantidade,
+        validade: formData.validade,
+        doadorId: uid, // ou "usuarioId", conforme esperado pelo backend
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(doacao),
+      });
+
+      if (!response.ok) {
+        setMensagem("Erro ao registrar doação. Tente novamente.");
+        return;
+      }
+
+      setMensagem("✅ Doação registrada com sucesso!");
+      setTimeout(() => navigate("/doador"), 2000);
+    } catch (error: unknown) {
+      setMensagem("Erro ao registrar doação. Tente novamente.");
+      console.error(error);
+    }
   };
+
+  const btnClass =
+    "w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105";
+
+  // Calcula a data mínima (1 mês à frente)
+  const today = new Date();
+  const minDate = new Date(today);
+  minDate.setMonth(minDate.getMonth() + 1);
+
+  // Formata para yyyy-mm-dd
+  const yyyy = minDate.getFullYear();
+  const mm = String(minDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(minDate.getDate()).padStart(2, '0');
+  const minDateStr = `${yyyy}-${mm}-${dd}`;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -81,6 +138,9 @@ export default function NovaDoacao() {
                 type="number"
                 name="quantidade"
                 value={formData.quantidade}
+                min={0.1}
+                max={1000}
+                step={0.1}
                 onChange={handleChange}
                 required
                 className="w-full p-2 border border-gray-300 rounded"
@@ -97,42 +157,15 @@ export default function NovaDoacao() {
                 name="validade"
                 value={formData.validade}
                 onChange={handleChange}
+                min={minDateStr}
                 className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Beneficiario
-              </label>
-              <input
-                type="text"
-                name="beneficiario"
-                value={formData.beneficiario}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Nome da ONG"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Endereço para coleta ou entrega
-              </label>
-              <textarea
-                name="endereco"
-                value={formData.endereco}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Rua, número, bairro, cidade..."
               />
             </div>
 
             <Button
               type="submit"
               variant="green"
+              className={btnClass}
             >
               Enviar Doação
             </Button>

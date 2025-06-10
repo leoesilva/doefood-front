@@ -1,38 +1,95 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/shadcn/button";
 import { useNavigate } from "react-router-dom";
-
-const doacoesMock = [
-  {
-    id: 1,
-    alimento: "Arroz",
-    quantidade: "5 kg",
-    validade: "2025-07-15",
-    endereco: "Rua das Flores, 123 - Bairro Verde",
-    data: "2025-05-01",
-    beneficiario: "ONG Mãos que Ajudam",
-  },
-  {
-    id: 2,
-    alimento: "Leite",
-    quantidade: "10 unidades",
-    validade: "2025-06-10",
-    endereco: "Av. Central, 456 - Centro",
-    data: "2025-04-28",
-    beneficiario: "Casa de Apoio Esperança",
-  },
-];
+import { getAuth } from "firebase/auth";
+import { Table } from "antd";
 
 export default function HistoricoDoacaoDoador() {
   const navigate = useNavigate();
   const [filtro, setFiltro] = useState("");
-  
-    const doacoesFiltradas = doacoesMock.filter(
-      (doacao) =>
-        doacao.alimento.toLowerCase().includes(filtro.toLowerCase()) ||
-        doacao.beneficiario.toLowerCase().includes(filtro.toLowerCase())
-    );
+  interface Doacao {
+    id: string;
+    doadorId: string;
+    alimento: string;
+    quantidade: number;
+    validade: string;
+    beneficiario?: string;
+    endereco?: string;
+    data?: string;
+  }
+
+  const [doacoes, setDoacoes] = useState<Doacao[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const btnClass =
+    "w-full flex items-center justify-center gap-3 py-2 text-lg rounded-xl transition-transform transform hover:scale-105";
+
+  useEffect(() => {
+    const fetchDoacoes = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        if (!token || !currentUser) {
+          setDoacoes([]);
+          setLoading(false);
+          return;
+        }
+        const uid = currentUser.uid;
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/doacoes/doador/${uid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!response.ok) throw new Error("Erro ao buscar doações");
+        const data = await response.json();
+        console.log("Doações recebidas:", data); // Adicione este log
+        setDoacoes(data);
+      } catch (err) {
+        console.error(err);
+        setDoacoes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDoacoes();
+  }, []);
+
+  const doacoesFiltradas = doacoes.filter(
+    (doacao) =>
+      doacao.alimento?.toLowerCase().includes(filtro.toLowerCase()) ||
+      doacao.beneficiario?.toLowerCase().includes(filtro.toLowerCase())
+  );
+
+  // Defina as colunas para o Ant Design Table
+  const columns = [
+    { title: "Alimento", dataIndex: "alimento", key: "alimento" },
+    { title: "Quantidade", dataIndex: "quantidade", key: "quantidade" },
+    { title: "Validade", dataIndex: "validade", key: "validade" },
+    {
+      title: "Beneficiário",
+      dataIndex: "beneficiario",
+      key: "beneficiario",
+      render: (text: string) => text || "-",
+    },
+    {
+      title: "Endereço",
+      dataIndex: "endereco",
+      key: "endereco",
+      render: (text: string) => text || "-",
+    },
+    {
+      title: "Doado em",
+      dataIndex: "data",
+      key: "data",
+      render: (text: string) => text || "-",
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-gray-50 font-[Roboto]">
@@ -52,57 +109,33 @@ export default function HistoricoDoacaoDoador() {
           />
         </div>
 
-        {doacoesFiltradas.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl shadow-lg bg-white border border-gray-200">
-            <table className="min-w-full text-sm text-gray-700">
-              <thead className="bg-green-600 text-white text-left uppercase text-xs tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Alimento</th>
-                  <th className="px-6 py-4">Quantidade</th>
-                  <th className="px-6 py-4">Validade</th>
-                  <th className="px-6 py-4">Beneficiário</th>
-                  <th className="px-6 py-4">Endereço</th>
-                  <th className="px-6 py-4">Doado em</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
-                {doacoesFiltradas.map((doacao) => (
-                  <tr
-                    key={doacao.id}
-                    className="hover:bg-green-50 transition duration-150"
-                  >
-                    <td className="px-6 py-4">{doacao.alimento}</td>
-                    <td className="px-6 py-4">{doacao.quantidade}</td>
-                    <td className="px-6 py-4">{doacao.validade}</td>
-                    <td className="px-6 py-4">{doacao.beneficiario}</td>
-                    <td className="px-6 py-4">{doacao.endereco}</td>
-                    <td className="px-6 py-4 text-gray-500">{doacao.data}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-gray-500 text-center mt-8">
-            Você ainda não fez nenhuma doação ou nenhum resultado foi encontrado.
-          </div>
-        )}
+        <Table
+          columns={columns}
+          dataSource={doacoesFiltradas}
+          loading={loading}
+          rowKey="id"
+          locale={{
+            emptyText:
+              "Você ainda não fez nenhuma doação ou nenhum resultado foi encontrado.",
+          }}
+          pagination={{ pageSize: 10 }}
+        />
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <Button
+          <Button
             onClick={() => navigate(-1)}
             variant="linkGreen"
             className="text-sm"
-            >
+          >
             ← Voltar para página anterior
-            </Button>
-            <Button
+          </Button>
+          <Button
             onClick={() => navigate("/doador/nova-doacao")}
             variant="green"
-            className="transition"
-            >
+            className={btnClass}
+          >
             Nova Doação
-            </Button>
+          </Button>
         </div>
       </main>
 
