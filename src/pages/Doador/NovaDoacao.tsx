@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/shadcn/button";
 import ilustracao from "@/assets/doacao-ilustracao.webp"; 
 import { getAuth } from "firebase/auth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 export default function NovaDoacao() {
@@ -15,7 +17,7 @@ export default function NovaDoacao() {
     validade: "",
   });
 
-  const [mensagem, setMensagem] = useState("");
+  const [mensagem] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -26,31 +28,29 @@ export default function NovaDoacao() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMensagem(""); // Limpa mensagem anterior
 
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        setMensagem("Você precisa estar autenticado para doar.");
+        toast.error("Você precisa estar autenticado para doar.");
         return;
       }
 
-      // Recupera o UID do usuário autenticado
       const auth = getAuth();
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        setMensagem("Usuário não autenticado.");
+        toast.error("Usuário não autenticado.");
         return;
       }
       const uid = currentUser.uid;
 
-      // Monta o objeto da doação com data/hora atual
       const doacao = {
         alimento: formData.alimento,
         quantidade: formData.quantidade,
         validade: formData.validade,
         doadorId: uid,
-        dataCriacao: new Date().toISOString(), // <-- Adiciona data/hora atual
+        dataCriacao: new Date().toISOString(),
+        disponivel: true, // campo oculto indicando disponibilidade
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {
@@ -63,14 +63,14 @@ export default function NovaDoacao() {
       });
 
       if (!response.ok) {
-        setMensagem("Erro ao registrar doação. Tente novamente.");
+        toast.error("Erro ao registrar doação. Tente novamente.");
         return;
       }
 
-      setMensagem("✅ Doação registrada com sucesso!");
-      setTimeout(() => navigate("/doador"), 2000);
+      toast.success(" Doação registrada com sucesso!");
+      setFormData({ alimento: "", quantidade: "", validade: "" }); // Limpa os campos
     } catch (error: unknown) {
-      setMensagem("Erro ao registrar doação. Tente novamente.");
+      toast.error("Erro ao registrar doação. Tente novamente.");
       console.error(error);
     }
   };
@@ -91,6 +91,7 @@ export default function NovaDoacao() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
+      <ToastContainer />
       <main className="flex-1">
         <div className="text-center py-8 px-4">
           <h1 className="text-3xl font-bold text-green-700 mb-2">
