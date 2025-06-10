@@ -1,54 +1,52 @@
-# React + TypeScript + Vite
+# DoeFood Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este projeto é o frontend do **DoeFood**, uma plataforma para facilitar doações de alimentos entre doadores e instituições.
 
-Currently, two official plugins are available:
+## Tecnologias Utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Axios](https://axios-http.com/)
+- [Styled Components](https://styled-components.com/)
 
-## Expanding the ESLint configuration
+## Como Executar a Aplicação
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Clone o repositório:**
+  ```bash
+  git clone https://github.com/seu-usuario/doefood-front.git
+  cd doefood-front
+  ```
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+2. **Instale as dependências:**
+  ```bash
+  npm install
+  ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+3. **Inicie a aplicação:**
+  ```bash
+  npm run dev
+  ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+4. Acesse em [http://localhost:5173](http://localhost:5173)
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## Como Contribuir
+
+1. Faça um fork deste repositório.
+2. Crie uma branch para sua feature ou correção:
+  ```bash
+  git checkout -b minha-feature
+  ```
+3. Faça suas alterações e commit:
+  ```bash
+  git commit -m 'Minha contribuição'
+  ```
+4. Envie para seu fork:
+  ```bash
+  git push origin minha-feature
+  ```
+5. Abra um Pull Request.
+
+---
+
+Sinta-se à vontade para abrir issues e sugerir melhorias!
