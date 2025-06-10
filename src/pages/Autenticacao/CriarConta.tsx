@@ -8,7 +8,6 @@ import { Input } from "@/components/shadcn/input";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
-// Máscara de CNPJ
 const formatarCNPJ = (valor: string) => {
   return valor
     .replace(/\D/g, "")
@@ -19,7 +18,19 @@ const formatarCNPJ = (valor: string) => {
     .slice(0, 18);
 };
 
-// Função para verificar força da senha e regras
+function formatarCep(value: string) {
+  // Remove tudo que não for número
+  const onlyNums = value.replace(/\D/g, "");
+  // Limita o tamanho a 8 dígitos e adiciona o hífen depois dos 5 primeiros
+  if (onlyNums.length > 5) {
+    return onlyNums.slice(0, 5) + "-" + onlyNums.slice(5, 8);
+  }
+  return onlyNums;
+}
+
+
+
+
 function verificarForcaSenha(senha: string) {
   const regras = {
     tamanho: senha.length >= 8,
@@ -37,26 +48,42 @@ function verificarForcaSenha(senha: string) {
 }
 
 export default function CriarConta() {
-  const [nome, setNome] = useState("");
+  const [razaoSocial, setRazaoSocial] = useState("");
+  const [nomeFantasia, setNomeFantasia] = useState("");
   const [cnpj, setCnpj] = useState("");
-  const [endereco, setEndereco] = useState("");
+
+  // Endereço separado
+  const [cep, setCep] = useState("");
+  const [logradouro, setLogradouro] = useState("");
+  const [bairro, setBairro] = useState("");
+  const [municipio, setMunicipio] = useState("");
+  const [estado, setEstado] = useState("");
+  const [numero, setNumero] = useState("");
+  const [complemento, setComplemento] = useState("");
+  const [TipoLogradouro, setTipoLogradouro] = useState("");
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarSenhaConfirmar, setMostrarSenhaConfirmar] = useState(false);
   const [tipo, setTipo] = useState("doador");
-  const [tentouSubmeter, setTentouSubmeter] = useState(false);
-
-
+  
   const [errors, setErrors] = useState({
-    nome: "",
+    razaoSocial: "",
+    nomeFantasia: "",
     cnpj: "",
-    endereco: "",
+    cep: "",
+    logradouro: "",
+    bairro: "",
+    municipio: "",
+    estado: "",
+    numero: "",
+    TipoLogradouro: "",
     email: "",
     senha: "",
     confirmarSenha: "",
-    geral: ""
+    geral: "",
   });
 
   const navigate = useNavigate();
@@ -69,26 +96,107 @@ export default function CriarConta() {
     forte: "bg-green-500",
   };
 
+  // Função para buscar dados do CNPJ via Brasil API
+  async function buscarDadosCNPJ(cnpjLimpo: string) {
+    try {
+      // A URL da Brasil API para CNPJ
+      const url = `https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("CNPJ não encontrado");
+      }
+      const data = await response.json();
+
+      // Atualiza os campos de endereço
+      setRazaoSocial(data.razao_social || "");
+      setNomeFantasia(data.nome_fantasia || "");
+
+      setCep( formatarCep(data.cep) || "");
+      setTipoLogradouro(data.descricao_tipo_de_logradouro || "");
+      setLogradouro(data.logradouro || "");
+      setNumero(data.numero || "");
+      setComplemento(data.complemento || "");
+      setBairro(data.bairro || "");
+      setMunicipio(data.municipio || "");
+      setEstado(data.uf || "");
+    } catch {
+      setErrors((prev) => ({ ...prev, cnpj: "CNPJ inválido ou não encontrado." }));
+      setCep("");
+      setLogradouro("");
+      setBairro("");
+      setMunicipio("");
+      setEstado("");
+      setRazaoSocial("");
+      setNomeFantasia("");
+    }
+  }
+
+  const handleBlurCNPJ = () => {
+    const cnpjLimpo = cnpj.replace(/\D/g, "");
+    if (cnpjLimpo.length === 14) {
+      buscarDadosCNPJ(cnpjLimpo);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({
-      nome: "",
+      razaoSocial: "",
+      nomeFantasia: "",
       cnpj: "",
-      endereco: "",
+      cep: "",
+      logradouro: "",
+      bairro: "",
+      municipio: "",
+      estado: "",
+      numero: "",
+      TipoLogradouro: "",
       email: "",
       senha: "",
       confirmarSenha: "",
-      geral: ""
+      geral: "",
     });
+
 
     const cnpjNumerico = cnpj.replace(/\D/g, "");
     if (cnpjNumerico.length !== 14) {
       setErrors((prev) => ({ ...prev, cnpj: "CNPJ inválido. Deve conter 14 dígitos." }));
       return;
     }
+    if (!razaoSocial) {
+      setErrors((prev) => ({ ...prev, razaoSocial: "Razão Social é obrigatória." }));
+      return;
+    }
+    if (!nomeFantasia) {
+      setErrors((prev) => ({ ...prev, nomeFantasia: "Nome Fantasia é obrigatório." }));
+      return;
+    }
+    if (!cep) {
+      setErrors((prev) => ({ ...prev, cep: "CEP é obrigatório." }));
+      return;
+    }
+    if (!logradouro) {
+      setErrors((prev) => ({ ...prev, logradouro: "Logradouro é obrigatório." }));
+      return;
+    }
+    if (!bairro) {
+      setErrors((prev) => ({ ...prev, bairro: "Bairro é obrigatório." }));
+      return;
+    }
+    if (!municipio) {
+      setErrors((prev) => ({ ...prev, municipio: "Município é obrigatório." }));
+      return;
+    }
+    if (!estado) {
+      setErrors((prev) => ({ ...prev, estado: "Estado é obrigatório." }));
+      return;
+    }
+    if (!numero) {
+      setErrors((prev) => ({ ...prev, numero: "Número é obrigatório." }));
+      return;
+    }
 
-    // Verifica regras da senha antes de continuar
-    setTentouSubmeter(true);
+    // setTentouSubmeter(true);
 
     if (!regras.tamanho || !regras.maiuscula || !regras.especial) {
       setErrors((prev) => ({
@@ -97,7 +205,6 @@ export default function CriarConta() {
       }));
       return;
     }
-
 
     if (senha !== confirmarSenha) {
       setErrors((prev) => ({ ...prev, confirmarSenha: "As senhas não coincidem." }));
@@ -109,13 +216,18 @@ export default function CriarConta() {
       const user = userCredential.user;
 
       await setDoc(doc(db, "usuarios", user.uid), {
-        nome,
+        razaoSocial,
+        nomeFantasia,
         cnpj,
-        endereco,
-        email,
-        tipo
+        cep,
+        logradouro,
+        bairro,
+        municipio,
+        estado,
+        numero,
+        complemento,
+        tipo,
       });
-
 
       navigate("/autenticacao/login");
     } catch (error: unknown) {
@@ -135,30 +247,24 @@ export default function CriarConta() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="w-full max-w-sm p-6 rounded-xl shadow-md border bg-white">
+      <div className="w-full max-w-md p-6 rounded-xl shadow-md border bg-white">
         <h1 className="text-2xl font-semibold text-center mb-4">Criar Conta</h1>
 
         {errors.geral && <p className="text-red-500 text-sm text-center mb-2">{errors.geral}</p>}
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="nome" className="block text-sm font-medium">Razão Social</label>
-            <Input
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              required
-              className={errors.nome ? "border-red-500" : ""}
-            />
-            {errors.nome && <p className="text-sm text-red-500 mt-1">{errors.nome}</p>}
-          </div>
 
+          {/* CNPJ */}
           <div>
             <label htmlFor="cnpj" className="block text-sm font-medium">CNPJ</label>
             <Input
               id="cnpj"
               value={cnpj}
-              onChange={(e) => setCnpj(formatarCNPJ(e.target.value))}
+              onChange={(e) => {
+                setCnpj(formatarCNPJ(e.target.value));
+                setErrors((prev) => ({ ...prev, cnpj: "" }));
+              }}
+              onBlur={handleBlurCNPJ}
               placeholder="00.000.000/0000-00"
               required
               className={errors.cnpj ? "border-red-500" : ""}
@@ -166,31 +272,184 @@ export default function CriarConta() {
             {errors.cnpj && <p className="text-sm text-red-500 mt-1">{errors.cnpj}</p>}
           </div>
 
+          {/* Razão Social */}
           <div>
-            <label htmlFor="endereco" className="block text-sm font-medium">Endereço</label>
+            <label htmlFor="razaoSocial" className="block text-sm font-medium">Razão Social</label>
             <Input
-              id="endereco"
-              value={endereco}
-              onChange={(e) => setEndereco(e.target.value)}
+              id="razaoSocial"
+              value={razaoSocial}
+              onChange={(e) => {
+                setRazaoSocial(e.target.value);
+                setErrors((prev) => ({ ...prev, razaoSocial: "" }));
+              }}
               required
-              className={errors.endereco ? "border-red-500" : ""}
+              className={errors.razaoSocial ? "border-red-500" : ""}
             />
-            {errors.endereco && <p className="text-sm text-red-500 mt-1">{errors.endereco}</p>}
+            {errors.razaoSocial && <p className="text-sm text-red-500 mt-1">{errors.razaoSocial}</p>}
           </div>
 
+          {/* Nome Fantasia */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">E-mail</label>
+            <label htmlFor="nomeFantasia" className="block text-sm font-medium">Nome Fantasia</label>
+            <Input
+              id="nomeFantasia"
+              value={nomeFantasia}
+              onChange={(e) => {
+                setNomeFantasia(e.target.value);
+                setErrors((prev) => ({ ...prev, nomeFantasia: "" }));
+              }}
+              required
+              className={errors.nomeFantasia ? "border-red-500" : ""}
+            />
+            {errors.nomeFantasia && <p className="text-sm text-red-500 mt-1">{errors.nomeFantasia}</p>}
+          </div>
+
+          {/* tipo Logradouro */}
+          <div>
+            <label htmlFor="TipoLogradouro" className="block text-sm font-medium">
+              Rua, Avenida, etc.
+            </label>
+            <Input
+              id="TipoLogradouro"
+              value={TipoLogradouro}
+              onChange={(e) => setTipoLogradouro(e.target.value)}
+              required
+              className={errors.TipoLogradouro ? "border-red-500" : ""}
+            />
+            {errors.TipoLogradouro && (
+              <p className="text-sm text-red-500 mt-1">{errors.TipoLogradouro}</p>
+            )}
+          </div>
+
+          {/* Logradouro */}
+          <div>
+            <label htmlFor="logradouro" className="block text-sm font-medium">Logradouro</label>
+            <Input
+              id="logradouro"
+              value={logradouro}
+              onChange={(e) => {
+                setLogradouro(e.target.value);
+                setErrors((prev) => ({ ...prev, logradouro: "" }));
+              }}
+              required
+              className={errors.logradouro ? "border-red-500" : ""}
+            />
+            {errors.logradouro && <p className="text-sm text-red-500 mt-1">{errors.logradouro}</p>}
+          </div>
+
+          {/* Número */}
+          <div>
+            <label htmlFor="numero" className="block text-sm font-medium">Número</label>
+            <Input
+              id="numero"
+              value={numero}
+              onChange={(e) => {
+                setNumero(e.target.value);
+                setErrors((prev) => ({ ...prev, numero: "" }));
+              }}
+              required
+              className={errors.numero ? "border-red-500" : ""}
+            />
+            {errors.numero && <p className="text-sm text-red-500 mt-1">{errors.numero}</p>}
+          </div>
+
+          {/* Complemento */}
+          <div>
+            <label htmlFor="complemento" className="block text-sm font-medium">Complemento</label>
+            <Input
+              id="complemento"
+              value={complemento}
+              onChange={(e) => setComplemento(e.target.value)}
+              placeholder="Opcional"
+            />
+          </div>
+
+          {/* Bairro */}
+          <div>
+            <label htmlFor="bairro" className="block text-sm font-medium">Bairro</label>
+            <Input
+              id="bairro"
+              value={bairro}
+              onChange={(e) => {
+                setBairro(e.target.value);
+                setErrors((prev) => ({ ...prev, bairro: "" }));
+              }}
+              required
+              className={errors.bairro ? "border-red-500" : ""}
+            />
+            {errors.bairro && <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>}
+          </div>
+
+          {/* Município */}
+          <div>
+            <label htmlFor="municipio" className="block text-sm font-medium">Município</label>
+            <Input
+              id="municipio"
+              value={municipio}
+              onChange={(e) => {
+                setMunicipio(e.target.value);
+                setErrors((prev) => ({ ...prev, municipio: "" }));
+              }}
+              required
+              className={errors.municipio ? "border-red-500" : ""}
+            />
+            {errors.municipio && <p className="text-sm text-red-500 mt-1">{errors.municipio}</p>}
+          </div>
+
+          {/* Estado */}
+          <div>
+            <label htmlFor="estado" className="block text-sm font-medium">Estado (UF)</label>
+            <Input
+              id="estado"
+              value={estado}
+              onChange={(e) => {
+                setEstado(e.target.value.toUpperCase());
+                setErrors((prev) => ({ ...prev, estado: "" }));
+              }}
+              required
+              maxLength={2}
+              className={errors.estado ? "border-red-500" : ""}
+            />
+            {errors.estado && <p className="text-sm text-red-500 mt-1">{errors.estado}</p>}
+          </div>
+
+          {/* CEP */}
+          <div>
+            <label htmlFor="cep" className="block text-sm font-medium">CEP</label>
+            <Input
+              id="cep"
+              value={cep}
+              onChange={(e) => {
+                const cepFormatado = formatarCep(e.target.value);
+                setCep(cepFormatado);
+                setErrors((prev) => ({ ...prev, cep: "" }));
+              }}
+              required
+              className={errors.cep ? "border-red-500" : ""}
+              placeholder="00000-000"
+              maxLength={9}
+            />
+            {errors.cep && <p className="text-sm text-red-500 mt-1">{errors.cep}</p>}
+          </div>
+
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium">Email</label>
             <Input
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setErrors((prev) => ({ ...prev, email: "" }));
+              }}
               required
               className={errors.email ? "border-red-500" : ""}
             />
             {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
           </div>
 
+          {/* Senha */}
           <div>
             <label htmlFor="senha" className="block text-sm font-medium">Senha</label>
             <div className="relative">
@@ -198,78 +457,39 @@ export default function CriarConta() {
                 id="senha"
                 type={mostrarSenha ? "text" : "password"}
                 value={senha}
-                onChange={(e) => setSenha(e.target.value)}
+                onChange={(e) => {
+                  setSenha(e.target.value);
+                  setErrors((prev) => ({ ...prev, senha: "" }));
+                }}
                 required
-                className={errors.senha ? "border-red-500 pr-10" : "pr-10"}
+                className={errors.senha ? "border-red-500" : ""}
               />
               <button
                 type="button"
-                onClick={() => setMostrarSenha((prev) => !prev)}
+                onClick={() => setMostrarSenha(!mostrarSenha)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
               >
                 {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-
-            {/* Barra de força da senha */}
-            <div className="h-2 rounded mt-2 w-full bg-gray-300">
-              <div
-                className={`${corForca[forca]} h-2 rounded transition-all`}
-                style={{
-                  width:
-                    forca === "fraca"
-                      ? "5%"
-                      : forca === "media"
-                        ? "50%"
-                        : forca === "forte"
-                          ? "100%"
-                          : "0",
-                }}
-              />
+            <div className="flex space-x-2 mt-1 text-sm">
+              <span
+                className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${regras.tamanho ? "" : "opacity-30"
+                  }`}
+              ></span>
+              <span
+                className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${regras.maiuscula ? "" : "opacity-30"
+                  }`}
+              ></span>
+              <span
+                className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${regras.especial ? "" : "opacity-30"
+                  }`}
+              ></span>
             </div>
-
-            {/* Regras da senha */}
-            <div className="mt-2 text-sm space-y-1">
-              <p
-                className={
-                  regras.tamanho
-                    ? "text-green-600"
-                    : tentouSubmeter
-                      ? "text-red-600"
-                      : "text-gray-600"
-                }
-              >
-                • Mínimo 8 caracteres (letras ou números)
-              </p>
-              <p
-                className={
-                  regras.maiuscula
-                    ? "text-green-600"
-                    : tentouSubmeter
-                      ? "text-red-600"
-                      : "text-gray-600"
-                }
-              >
-                • Pelo menos 1 letra maiúscula
-              </p>
-              <p
-                className={
-                  regras.especial
-                    ? "text-green-600"
-                    : tentouSubmeter
-                      ? "text-red-600"
-                      : "text-gray-600"
-                }
-              >
-                • Pelo menos 1 caractere especial (!@#$%&*...)
-              </p>
-
-            </div>
-
-            {errors.senha && <p className="text-sm text-red-500 mt-1">{errors.senha}</p>}
           </div>
 
+          {/* Confirmar Senha */}
           <div>
             <label htmlFor="confirmarSenha" className="block text-sm font-medium">Confirmar Senha</label>
             <div className="relative">
@@ -277,54 +497,52 @@ export default function CriarConta() {
                 id="confirmarSenha"
                 type={mostrarSenhaConfirmar ? "text" : "password"}
                 value={confirmarSenha}
-                onChange={(e) => setConfirmarSenha(e.target.value)}
+                onChange={(e) => {
+                  setConfirmarSenha(e.target.value);
+                  setErrors((prev) => ({ ...prev, confirmarSenha: "" }));
+                }}
                 required
-                className={errors.confirmarSenha ? "border-red-500 pr-10" : "pr-10"}
+                className={errors.confirmarSenha ? "border-red-500" : ""}
               />
               <button
                 type="button"
-                onClick={() => setMostrarSenhaConfirmar((prev) => !prev)}
+                onClick={() => setMostrarSenhaConfirmar(!mostrarSenhaConfirmar)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={mostrarSenhaConfirmar ? "Ocultar senha" : "Mostrar senha"}
               >
                 {mostrarSenhaConfirmar ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            {errors.confirmarSenha && <p className="text-sm text-red-500 mt-1">{errors.confirmarSenha}</p>}
+            {errors.confirmarSenha && (
+              <p className="text-sm text-red-500 mt-1">{errors.confirmarSenha}</p>
+            )}
           </div>
 
+          {/* Tipo de usuário */}
           <div>
-            <label className="block text-sm font-medium mb-1">Tipo de usuário</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input type="radio" name="tipo" value="doador" checked={tipo === "doador"} onChange={(e) => setTipo(e.target.value)} className="accent-orange-500" />
-                Doador
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="radio" name="tipo" value="beneficiario" checked={tipo === "beneficiario"} onChange={(e) => setTipo(e.target.value)} className="accent-orange-500" />
-                Beneficiário
-              </label>
-            </div>
+            <label htmlFor="tipo" className="block text-sm font-medium mb-1">Tipo de usuário</label>
+            <select
+              id="tipo"
+              value={tipo}
+              onChange={(e) => setTipo(e.target.value)}
+              className="w-full rounded border border-gray-300 p-2"
+            >
+              <option value="doador">Doador</option>
+              <option value="receptor">Receptor</option>
+            </select>
           </div>
 
-          <Button type="submit" className="bg-[#FF9800] hover:bg-[#FB8C00] text-white w-full mt-2">
-            Cadastrar
+          <Button type="submit" className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2">
+            Criar Conta
           </Button>
-
-          <p className="text-xs text-center text-gray-500 mt-4 px-2">
-            Ao criar uma conta, você concorda com os <span className="text-blue-600 hover:underline cursor-pointer">Termos de Serviço</span> do doeFood.
-            Para saber mais sobre como tratamos seus dados, veja nossa <span className="text-blue-600 hover:underline cursor-pointer">Política de Privacidade</span>.
-            Podemos enviar e-mails com informações importantes relacionadas à sua conta.
-          </p>
         </form>
 
-        <p className="text-sm text-center mt-4">
-          Já tem uma conta?{" "}
-          <Link to="/autenticacao/login" className="text-blue-600 hover:underline">Faça login</Link>
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Já possui uma conta?{" "}
+          <Link to="/autenticacao/login" className="text-blue-600 hover:underline">
+            Fazer login
+          </Link>
         </p>
-
-        <Link to="/" className="block mt-2 text-sm text-blue-600 hover:underline text-center">
-          ← Voltar para a página inicial
-        </Link>
       </div>
     </div>
   );
