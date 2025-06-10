@@ -28,9 +28,6 @@ function formatarCep(value: string) {
   return onlyNums;
 }
 
-
-
-
 function verificarForcaSenha(senha: string) {
   const regras = {
     tamanho: senha.length >= 8,
@@ -91,8 +88,7 @@ export default function CriarConta() {
 
   const navigate = useNavigate();
 
-  const { regras } = verificarForcaSenha(senha);
-
+  const { forca, regras } = verificarForcaSenha(senha);
 
   // Função para buscar dados do CNPJ via Brasil API
   async function buscarDadosCNPJ(cnpjLimpo: string) {
@@ -522,7 +518,7 @@ export default function CriarConta() {
                     setErrors((prev) => ({ ...prev, senha: "" }));
                   }}
                   onFocus={() => setMostrarRegras(true)}
-                  onBlur={() => setTimeout(() => setMostrarRegras(false), 200)} // dá tempo de interagir com o balão
+                  onBlur={() => setTimeout(() => setMostrarRegras(false), 200)}
                   required
                   className={errors.senha ? "border-red-500 pr-10" : "pr-10"}
                 />
@@ -536,12 +532,40 @@ export default function CriarConta() {
                 </button>
               </div>
 
+              {/* Barra de força da senha */}
+              {senha && (
+                <div className="mt-2">
+                  <div
+                    className={`h-2 rounded transition-all ${
+                      forca === "fraca"
+                        ? "bg-red-400 w-1/3"
+                        : forca === "media"
+                        ? "bg-yellow-400 w-2/3"
+                        : "bg-green-500 w-full"
+                    }`}
+                  />
+                  <span
+                    className={`text-xs font-semibold ml-1 ${
+                      forca === "fraca"
+                        ? "text-red-500"
+                        : forca === "media"
+                        ? "text-yellow-600"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {forca === "fraca"
+                      ? "Senha fraca"
+                      : forca === "media"
+                      ? "Senha média"
+                      : "Senha forte"}
+                  </span>
+                </div>
+              )}
+
               {/* Tooltip com regras */}
               {mostrarRegras && (
                 <div className="absolute z-10 top-0 right-full mr-4 w-[280px] bg-gray-800 text-white text-sm rounded-md shadow-lg p-4">
-                  {/* Seta apontando para o campo */}
                   <div className="absolute top-4 -right-2 w-3 h-3 bg-gray-800 rotate-45 shadow-md" />
-
                   <p className="font-semibold mb-2">SUA SENHA DEVE CONTER:</p>
                   <ul className="space-y-1">
                     <li className={regras.maiuscula ? "text-green-400" : "text-gray-300"}>
@@ -552,6 +576,9 @@ export default function CriarConta() {
                     </li>
                     <li className={regras.numero ? "text-green-400" : "text-gray-300"}>
                       <span className="font-bold">123</span> 1 número
+                    </li>
+                    <li className={regras.especial ? "text-green-400" : "text-gray-300"}>
+                      <span className="font-bold">!</span> 1 caractere especial
                     </li>
                     <li className={regras.tamanho ? "text-green-400" : "text-gray-300"}>
                       <span className="font-bold">***</span> No mínimo 8 caracteres

@@ -5,12 +5,13 @@ import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
 import { Separator } from "@/components/shadcn/separator";
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +21,25 @@ export default function Login() {
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), senha.trim());
       const token = await userCredential.user.getIdToken();
       localStorage.setItem("token", token);
-      alert(`Login realizado com sucesso! Token salvo: ${token}`);
+      // Busca o tipo do usuário no backend e redireciona conforme o tipo
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${userCredential.user.uid}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Erro ao buscar dados do usuário");
+      const usuario = await response.json();
+      // Verifica se o backend retorna o tipo diretamente ou dentro de um objeto 'usuario'
+      const tipo = usuario.tipo || (usuario.usuario && usuario.usuario.tipo);
+
+      if (tipo === "doador") {
+        navigate("/doador", { replace: true });
+      } else if (tipo === "beneficiario") {
+        navigate("/beneficiario", { replace: true });
+      } else {
+        setErro("Tipo de usuário não reconhecido.");
+        // Opcional: não redireciona, apenas exibe erro
+      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         // Resposta segura ao usuário
