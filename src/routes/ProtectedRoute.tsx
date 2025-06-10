@@ -23,14 +23,25 @@ const ProtectedRoute = ({ children, allowedTipo }: ProtectedRouteProps) => {
 
       // Obtenha o tipo do Firestore se necessário
       const id = user.uid;
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      const data = await res.json();
-      if (data?.tipo === allowedTipo) {
-        setIsAuth(true);
-      } else {
+        if (!res.ok) {
+          setIsAuth(false);
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Dados do usuário:", data);
+
+        if (data?.tipo === allowedTipo) {
+          setIsAuth(true);
+        } else {
+          setIsAuth(false);
+        }
+      } catch {
         setIsAuth(false);
       }
     });
