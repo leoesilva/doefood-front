@@ -1,8 +1,7 @@
 // BuscarDoacao.tsx
-import {  useState } from "react";
-import { FaSearch, FaMapMarkerAlt, FaListAlt } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaSearch, FaMapMarkerAlt } from "react-icons/fa";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/shadcn/button";
@@ -22,29 +21,93 @@ function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: numbe
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c; // Distância em km
 }
 
 const BuscarDoacao = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [mostrarProximas, setMostrarProximas] = useState(false);
+  interface Doacao {
+    id: number;
+    nome: string;
+    lat: number;
+    lng: number;
+    alimento: string;
+    quantidade: number;
+    validade: string;
+    endereco: string;
+  }
 
-  const doacoes = [
-    { id: 1, nome: "Doação de Cestas Básicas", lat: -23.55052, lng: -46.633308 },
-    { id: 2, nome: "Doação de Alimentos não-pereciveis", lat: -23.559616, lng: -46.658384 },
-    { id: 3, nome: "Doação de Alimentos Perecíveis", lat: -23.566, lng: -46.652 },
-    { id: 4, nome: "Doação de Frutas", lat: -23.570, lng: -46.640 },
-    { id: 5, nome: "Doação de Água", lat: -23.580, lng: -46.650 },
-  ];
+  const [doacoesComCoords, setDoacoesComCoords] = useState<Doacao[]>([]);
 
-  const handleSearch = () => {
-    console.log("Buscando doações para:", searchTerm);
+  useEffect(() => {
+    const fetchDoacoesComEndereco = async () => {
+      try {
+        // 1. Buscar doações disponíveis
+        const respDoacoes = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`);
+        const doacoesAll = await respDoacoes.json();
+        const doacoesDisponiveis = doacoesAll.filter((d: Doacao & { disponivel: boolean; doadorId: number; alimento: string; quantidade: number; validade: string; }) => d.disponivel);
+
+        // 2. Buscar usuários (doador) para cada doação
+        const doacoesComEndereco = await Promise.all(
+          doacoesDisponiveis.map(async (doacao: Doacao & { disponivel: boolean; doadorId: number; alimento: string; quantidade: number; validade: string; }) => {
+            // Busca o usuário doador pelo doadorId
+            const respUsuario = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${doacao.doadorId}`);
+            const usuario = await respUsuario.json();
+
+            // Monta o endereço completo
+            const endereco = `${usuario.logradouro || ""}, ${usuario.numero || ""}, ${usuario.bairro || ""}, ${usuario.municipio || ""}, ${usuario.estado || ""}`;
+            // Busca coordenadas no Nominatim
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(endereco)}&format=json&limit=1`;
+            try {
+              const res = await fetch(url);
+              const data = await res.json();
+              if (data && data[0]) {
+                return {
+                  id: doacao.id || Math.random().toString(36).substring(2),
+                  nome: usuario.nomeFantasia || usuario.razaoSocial || "Doador",
+                  lat: parseFloat(data[0].lat),
+                  lng: parseFloat(data[0].lon),
+                  endereco: endereco,
+                  alimento: doacao.alimento,
+                  quantidade: doacao.quantidade,
+                  validade: doacao.validade,
+                };
+              }
+            } catch {
+              // Erro ao buscar coordenadas, ignorando esta doação
+            }
+            return null;
+          })
+        );
+        setDoacoesComCoords(doacoesComEndereco.filter(Boolean));
+      } catch {
+        // Trate o erro conforme necessário
+      }
+    };
+
+    fetchDoacoesComEndereco();
+  }, []);
+
+  // Busca coordenadas do texto digitado na barra de pesquisa
+  const handleSearch = async () => {
+    if (!searchTerm) return;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=1`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data && data[0]) {
+        setUserLocation([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+        setMostrarProximas(true);
+      }
+    } catch {
+      // Trate erro de busca
+    }
   };
 
   const handleVerProximas = () => {
@@ -65,22 +128,11 @@ const BuscarDoacao = () => {
     );
   };
 
-  const handleVerPorCategoria = () => {
-    navigate("/categorias");
-  };
 
-  // Filtra as doações dentro de 5 km
-  const doacoesFiltradas = mostrarProximas && userLocation
-    ? doacoes.filter((d) => {
-        const distancia = calcularDistancia(
-          userLocation[0],
-          userLocation[1],
-          d.lat,
-          d.lng
-        );
-        return distancia <= 5; // 5 km de raio
-      })
-    : doacoes;
+  // Adicione para depuração:
+  useEffect(() => {
+    console.log("Doações com coordenadas:", doacoesComCoords);
+  }, [doacoesComCoords]);
 
   return (
     <>
@@ -111,7 +163,7 @@ const BuscarDoacao = () => {
           </div>
 
           {/* Mapa */}
-          <div className="w-full h-[400px] rounded-xl overflow-hidden">
+          <div className="w-full h-[400px] rounded-xl overflow-hidden mb-6">
             <MapContainer
               center={userLocation || [-23.55052, -46.633308]}
               zoom={13}
@@ -127,49 +179,57 @@ const BuscarDoacao = () => {
                   <Popup>Você está aqui</Popup>
                 </Marker>
               )}
-              {doacoesFiltradas.map((doacao) => (
+              {(mostrarProximas && userLocation
+                ? doacoesComCoords.filter((d) => {
+                  const distancia = calcularDistancia(
+                    userLocation[0],
+                    userLocation[1],
+                    d.lat,
+                    d.lng
+                  );
+                  return distancia <= 5;
+                })
+                : doacoesComCoords
+              ).map((doacao) => (
                 <Marker
-                  key={doacao.id}
+                  key={doacao.id || Math.random().toString(36)}
                   position={[doacao.lat, doacao.lng]}
                   icon={markerIcon}
                 >
-                  <Popup>{doacao.nome}</Popup>
+                  <Popup>
+                    <strong>{doacao.alimento}</strong><br />
+                    Quantidade: {doacao.quantidade}<br />
+                    Validade: {doacao.validade}<br />
+                    Doador: {doacao.nome}<br />
+                    {doacao.endereco}
+                  </Popup>
                 </Marker>
               ))}
             </MapContainer>
           </div>
 
-          {/* Botões */}
-          <div className="space-y-6 mt-8">
-            <div className="grid md:grid-cols-2 gap-4">
-                <Button
-                onClick={handleVerProximas}
-                variant="green"
-                className="py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
-                >
-                <FaMapMarkerAlt />
-                Ver Doações Próximas
-                </Button>
+          {/* Botões fora do mapa */}
+          <div className="flex flex-col md:flex-row gap-4 mt-6">
 
-                <Button
-                onClick={handleVerPorCategoria}
-                variant="blue"
-                className="py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
-                >
-                <FaListAlt />
-                Ver Doações por Categoria
-                </Button>
-            </div>
+            <Button
+              asChild
+              variant="linkGreen"
+              className="text-sm flex items-center gap-1 mb-4"
+            >
+              <a href="/beneficiario">← Voltar para a Home</a>
+            </Button>
 
-            <div className="text-center md:text-left">
-                <Button
-                variant="linkGreen"
-                onClick={() => navigate(-1)}
-                className="text-sm"
-                >
-                ← Voltar para página anterior
-                </Button>
-            </div>
+            <Button
+              onClick={handleVerProximas}
+              variant="green"
+              className="py-5 text-lg rounded-xl transition-transform transform hover:scale-105 w-full flex items-center justify-center gap-2"
+            >
+              <FaMapMarkerAlt />
+              Ver Doações Próximas
+            </Button>
+
+
+
           </div>
         </div>
       </main>
