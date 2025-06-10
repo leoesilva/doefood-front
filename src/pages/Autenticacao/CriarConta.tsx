@@ -247,84 +247,115 @@ export default function CriarConta() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="w-full max-w-md p-6 rounded-xl shadow-md border bg-white">
-        <h1 className="text-2xl font-semibold text-center mb-4">Criar Conta</h1>
+      <div className="w-full max-w-3xl p-8 rounded-xl shadow-md border bg-white">
+        <h1 className="text-2xl font-semibold text-center mb-6">Criar Conta</h1>
 
-        {errors.geral && <p className="text-red-500 text-sm text-center mb-2">{errors.geral}</p>}
+        {errors.geral && (
+          <p className="text-red-500 text-sm text-center mb-2">{errors.geral}</p>
+        )}
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-
-          {/* CNPJ */}
-          <div>
-            <label htmlFor="cnpj" className="block text-sm font-medium">CNPJ</label>
-            <Input
-              id="cnpj"
-              value={cnpj}
-              onChange={(e) => {
-                setCnpj(formatarCNPJ(e.target.value));
-                setErrors((prev) => ({ ...prev, cnpj: "" }));
-              }}
-              onBlur={handleBlurCNPJ}
-              placeholder="00.000.000/0000-00"
-              required
-              className={errors.cnpj ? "border-red-500" : ""}
-            />
-            {errors.cnpj && <p className="text-sm text-red-500 mt-1">{errors.cnpj}</p>}
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Linha 1: CNPJ (1/2) e Tipo de usuário (1/2) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="cnpj" className="block text-sm font-medium">
+                CNPJ
+              </label>
+              <Input
+                id="cnpj"
+                value={cnpj}
+                onChange={(e) => {
+                  setCnpj(formatarCNPJ(e.target.value));
+                  setErrors((prev) => ({ ...prev, cnpj: "" }));
+                }}
+                onBlur={handleBlurCNPJ}
+                placeholder="00.000.000/0000-00"
+                required
+                className={errors.cnpj ? "border-red-500" : ""}
+                maxLength={18}
+              />
+              {errors.cnpj && (
+                <p className="text-sm text-red-500 mt-1">{errors.cnpj}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="tipo" className="block text-sm font-medium mb-1">
+                Tipo de usuário
+              </label>
+              <select
+                id="tipo"
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="w-full rounded border border-gray-300 p-2"
+              >
+                <option value="doador">Doador</option>
+                <option value="receptor">Receptor</option>
+              </select>
+            </div>
           </div>
 
-          {/* Razão Social */}
-          <div>
-            <label htmlFor="razaoSocial" className="block text-sm font-medium">Razão Social</label>
-            <Input
-              id="razaoSocial"
-              value={razaoSocial}
-              onChange={(e) => {
-                setRazaoSocial(e.target.value);
-                setErrors((prev) => ({ ...prev, razaoSocial: "" }));
-              }}
-              required
-              className={errors.razaoSocial ? "border-red-500" : ""}
-            />
-            {errors.razaoSocial && <p className="text-sm text-red-500 mt-1">{errors.razaoSocial}</p>}
+          {/* Linha 2: Razão Social (grande) e Nome Fantasia (grande) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="razaoSocial" className="block text-sm font-medium">
+                Razão Social
+              </label>
+              <Input
+                id="razaoSocial"
+                value={razaoSocial}
+                onChange={(e) => {
+                  setRazaoSocial(e.target.value);
+                  setErrors((prev) => ({ ...prev, razaoSocial: "" }));
+                }}
+                required
+                className={errors.razaoSocial ? "border-red-500" : ""}
+              />
+              {errors.razaoSocial && (
+                <p className="text-sm text-red-500 mt-1">{errors.razaoSocial}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="nomeFantasia" className="block text-sm font-medium">
+                Nome Fantasia
+              </label>
+              <Input
+                id="nomeFantasia"
+                value={nomeFantasia}
+                onChange={(e) => {
+                  setNomeFantasia(e.target.value);
+                  setErrors((prev) => ({ ...prev, nomeFantasia: "" }));
+                }}
+                required
+                className={errors.nomeFantasia ? "border-red-500" : ""}
+              />
+              {errors.nomeFantasia && (
+                <p className="text-sm text-red-500 mt-1">{errors.nomeFantasia}</p>
+              )}
+            </div>
           </div>
 
-          {/* Nome Fantasia */}
-          <div>
-            <label htmlFor="nomeFantasia" className="block text-sm font-medium">Nome Fantasia</label>
-            <Input
-              id="nomeFantasia"
-              value={nomeFantasia}
-              onChange={(e) => {
-                setNomeFantasia(e.target.value);
-                setErrors((prev) => ({ ...prev, nomeFantasia: "" }));
-              }}
-              required
-              className={errors.nomeFantasia ? "border-red-500" : ""}
-            />
-            {errors.nomeFantasia && <p className="text-sm text-red-500 mt-1">{errors.nomeFantasia}</p>}
-          </div>
-
-          {/* tipo Logradouro */}
-          <div>
-            <label htmlFor="TipoLogradouro" className="block text-sm font-medium">
+            {/* Linha 3: Tipo Logradouro, Logradouro, Número (todos na mesma linha) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="TipoLogradouro" className="block text-sm font-medium">
               Rua, Avenida, etc.
-            </label>
-            <Input
+              </label>
+              <Input
               id="TipoLogradouro"
               value={TipoLogradouro}
               onChange={(e) => setTipoLogradouro(e.target.value)}
               required
               className={errors.TipoLogradouro ? "border-red-500" : ""}
-            />
-            {errors.TipoLogradouro && (
+              />
+              {errors.TipoLogradouro && (
               <p className="text-sm text-red-500 mt-1">{errors.TipoLogradouro}</p>
-            )}
-          </div>
-
-          {/* Logradouro */}
-          <div>
-            <label htmlFor="logradouro" className="block text-sm font-medium">Logradouro</label>
-            <Input
+              )}
+            </div>
+            <div>
+              <label htmlFor="logradouro" className="block text-sm font-medium">
+              Logradouro
+              </label>
+              <Input
               id="logradouro"
               value={logradouro}
               onChange={(e) => {
@@ -333,14 +364,16 @@ export default function CriarConta() {
               }}
               required
               className={errors.logradouro ? "border-red-500" : ""}
-            />
-            {errors.logradouro && <p className="text-sm text-red-500 mt-1">{errors.logradouro}</p>}
-          </div>
-
-          {/* Número */}
-          <div>
-            <label htmlFor="numero" className="block text-sm font-medium">Número</label>
-            <Input
+              />
+              {errors.logradouro && (
+              <p className="text-sm text-red-500 mt-1">{errors.logradouro}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="numero" className="block text-sm font-medium">
+              Número
+              </label>
+              <Input
               id="numero"
               value={numero}
               onChange={(e) => {
@@ -349,92 +382,113 @@ export default function CriarConta() {
               }}
               required
               className={errors.numero ? "border-red-500" : ""}
-            />
-            {errors.numero && <p className="text-sm text-red-500 mt-1">{errors.numero}</p>}
+              />
+              {errors.numero && (
+              <p className="text-sm text-red-500 mt-1">{errors.numero}</p>
+              )}
+            </div>
+            </div>
+
+            {/* Linha 4: Complemento, Bairro */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="complemento" className="block text-sm font-medium">
+                Complemento
+              </label>
+              <Input
+                id="complemento"
+                value={complemento}
+                onChange={(e) => setComplemento(e.target.value)}
+                placeholder="Opcional"
+              />
+            </div>
+            <div>
+              <label htmlFor="bairro" className="block text-sm font-medium">
+                Bairro
+              </label>
+              <Input
+                id="bairro"
+                value={bairro}
+                onChange={(e) => {
+                  setBairro(e.target.value);
+                  setErrors((prev) => ({ ...prev, bairro: "" }));
+                }}
+                required
+                className={errors.bairro ? "border-red-500" : ""}
+              />
+              {errors.bairro && (
+                <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>
+              )}
+            </div>
           </div>
 
-          {/* Complemento */}
-          <div>
-            <label htmlFor="complemento" className="block text-sm font-medium">Complemento</label>
-            <Input
-              id="complemento"
-              value={complemento}
-              onChange={(e) => setComplemento(e.target.value)}
-              placeholder="Opcional"
-            />
+          {/* Linha 5: Município, Estado, CEP */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="municipio" className="block text-sm font-medium">
+                Município
+              </label>
+              <Input
+                id="municipio"
+                value={municipio}
+                onChange={(e) => {
+                  setMunicipio(e.target.value);
+                  setErrors((prev) => ({ ...prev, municipio: "" }));
+                }}
+                required
+                className={errors.municipio ? "border-red-500" : ""}
+              />
+              {errors.municipio && (
+                <p className="text-sm text-red-500 mt-1">{errors.municipio}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="estado" className="block text-sm font-medium">
+                Estado (UF)
+              </label>
+              <Input
+                id="estado"
+                value={estado}
+                onChange={(e) => {
+                  setEstado(e.target.value.toUpperCase());
+                  setErrors((prev) => ({ ...prev, estado: "" }));
+                }}
+                required
+                maxLength={2}
+                className={errors.estado ? "border-red-500" : ""}
+              />
+              {errors.estado && (
+                <p className="text-sm text-red-500 mt-1">{errors.estado}</p>
+              )}
+            </div>
+            <div>
+              <label htmlFor="cep" className="block text-sm font-medium">
+                CEP
+              </label>
+              <Input
+                id="cep"
+                value={cep}
+                onChange={(e) => {
+                  const cepFormatado = formatarCep(e.target.value);
+                  setCep(cepFormatado);
+                  setErrors((prev) => ({ ...prev, cep: "" }));
+                }}
+                required
+                className={errors.cep ? "border-red-500" : ""}
+                placeholder="00000-000"
+                maxLength={9}
+              />
+              {errors.cep && (
+                <p className="text-sm text-red-500 mt-1">{errors.cep}</p>
+              )}
+            </div>
           </div>
 
-          {/* Bairro */}
+          {/* Linha 6: Email (grande) */}
           <div>
-            <label htmlFor="bairro" className="block text-sm font-medium">Bairro</label>
-            <Input
-              id="bairro"
-              value={bairro}
-              onChange={(e) => {
-                setBairro(e.target.value);
-                setErrors((prev) => ({ ...prev, bairro: "" }));
-              }}
-              required
-              className={errors.bairro ? "border-red-500" : ""}
-            />
-            {errors.bairro && <p className="text-sm text-red-500 mt-1">{errors.bairro}</p>}
-          </div>
-
-          {/* Município */}
-          <div>
-            <label htmlFor="municipio" className="block text-sm font-medium">Município</label>
-            <Input
-              id="municipio"
-              value={municipio}
-              onChange={(e) => {
-                setMunicipio(e.target.value);
-                setErrors((prev) => ({ ...prev, municipio: "" }));
-              }}
-              required
-              className={errors.municipio ? "border-red-500" : ""}
-            />
-            {errors.municipio && <p className="text-sm text-red-500 mt-1">{errors.municipio}</p>}
-          </div>
-
-          {/* Estado */}
-          <div>
-            <label htmlFor="estado" className="block text-sm font-medium">Estado (UF)</label>
-            <Input
-              id="estado"
-              value={estado}
-              onChange={(e) => {
-                setEstado(e.target.value.toUpperCase());
-                setErrors((prev) => ({ ...prev, estado: "" }));
-              }}
-              required
-              maxLength={2}
-              className={errors.estado ? "border-red-500" : ""}
-            />
-            {errors.estado && <p className="text-sm text-red-500 mt-1">{errors.estado}</p>}
-          </div>
-
-          {/* CEP */}
-          <div>
-            <label htmlFor="cep" className="block text-sm font-medium">CEP</label>
-            <Input
-              id="cep"
-              value={cep}
-              onChange={(e) => {
-                const cepFormatado = formatarCep(e.target.value);
-                setCep(cepFormatado);
-                setErrors((prev) => ({ ...prev, cep: "" }));
-              }}
-              required
-              className={errors.cep ? "border-red-500" : ""}
-              placeholder="00000-000"
-              maxLength={9}
-            />
-            {errors.cep && <p className="text-sm text-red-500 mt-1">{errors.cep}</p>}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium">
+              Email
+            </label>
             <Input
               id="email"
               type="email"
@@ -446,103 +500,103 @@ export default function CriarConta() {
               required
               className={errors.email ? "border-red-500" : ""}
             />
-            {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
-          </div>
-
-          {/* Senha */}
-          <div>
-            <label htmlFor="senha" className="block text-sm font-medium">Senha</label>
-            <div className="relative">
-              <Input
-                id="senha"
-                type={mostrarSenha ? "text" : "password"}
-                value={senha}
-                onChange={(e) => {
-                  setSenha(e.target.value);
-                  setErrors((prev) => ({ ...prev, senha: "" }));
-                }}
-                required
-                className={errors.senha ? "border-red-500" : ""}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarSenha(!mostrarSenha)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
-              >
-                {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            <div className="flex space-x-2 mt-1 text-sm">
-              <span
-                className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${regras.tamanho ? "" : "opacity-30"
-                  }`}
-              ></span>
-              <span
-                className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${regras.maiuscula ? "" : "opacity-30"
-                  }`}
-              ></span>
-              <span
-                className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${regras.especial ? "" : "opacity-30"
-                  }`}
-              ></span>
-            </div>
-          </div>
-
-          {/* Confirmar Senha */}
-          <div>
-            <label htmlFor="confirmarSenha" className="block text-sm font-medium">Confirmar Senha</label>
-            <div className="relative">
-              <Input
-                id="confirmarSenha"
-                type={mostrarSenhaConfirmar ? "text" : "password"}
-                value={confirmarSenha}
-                onChange={(e) => {
-                  setConfirmarSenha(e.target.value);
-                  setErrors((prev) => ({ ...prev, confirmarSenha: "" }));
-                }}
-                required
-                className={errors.confirmarSenha ? "border-red-500" : ""}
-              />
-              <button
-                type="button"
-                onClick={() => setMostrarSenhaConfirmar(!mostrarSenhaConfirmar)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                aria-label={mostrarSenhaConfirmar ? "Ocultar senha" : "Mostrar senha"}
-              >
-                {mostrarSenhaConfirmar ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            {errors.confirmarSenha && (
-              <p className="text-sm text-red-500 mt-1">{errors.confirmarSenha}</p>
+            {errors.email && (
+              <p className="text-sm text-red-500 mt-1">{errors.email}</p>
             )}
           </div>
 
-          {/* Tipo de usuário */}
-          <div>
-            <label htmlFor="tipo" className="block text-sm font-medium mb-1">Tipo de usuário</label>
-            <select
-              id="tipo"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-              className="w-full rounded border border-gray-300 p-2"
-            >
-              <option value="doador">Doador</option>
-              <option value="receptor">Receptor</option>
-            </select>
+          {/* Linha 7: Senha, Confirmar Senha */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="senha" className="block text-sm font-medium">
+                Senha
+              </label>
+              <div className="relative">
+                <Input
+                  id="senha"
+                  type={mostrarSenha ? "text" : "password"}
+                  value={senha}
+                  onChange={(e) => {
+                    setSenha(e.target.value);
+                    setErrors((prev) => ({ ...prev, senha: "" }));
+                  }}
+                  required
+                  className={errors.senha ? "border-red-500" : ""}
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <div className="flex space-x-2 mt-1 text-sm">
+                <span
+                  className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${
+                    regras.tamanho ? "" : "opacity-30"
+                  }`}
+                ></span>
+                <span
+                  className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${
+                    regras.maiuscula ? "" : "opacity-30"
+                  }`}
+                ></span>
+                <span
+                  className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${
+                    regras.especial ? "" : "opacity-30"
+                  }`}
+                ></span>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="confirmarSenha" className="block text-sm font-medium">
+                Confirmar Senha
+              </label>
+              <div className="relative">
+                <Input
+                  id="confirmarSenha"
+                  type={mostrarSenhaConfirmar ? "text" : "password"}
+                  value={confirmarSenha}
+                  onChange={(e) => {
+                    setConfirmarSenha(e.target.value);
+                    setErrors((prev) => ({ ...prev, confirmarSenha: "" }));
+                  }}
+                  required
+                  className={errors.confirmarSenha ? "border-red-500" : ""}
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarSenhaConfirmar(!mostrarSenhaConfirmar)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  aria-label={mostrarSenhaConfirmar ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {mostrarSenhaConfirmar ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.confirmarSenha && (
+                <p className="text-sm text-red-500 mt-1">{errors.confirmarSenha}</p>
+              )}
+            </div>
           </div>
 
-          <Button type="submit" className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2">
-            Criar Conta
-          </Button>
+          {/* Botão de submit */}
+          <div>
+            <Button
+              type="submit"
+              className="bg-[#FF9800] hover:bg-[#FB8C00] text-white font-poppins transition-transform transform hover:scale-105 w-full mt-2"
+            >
+              Criar Conta
+            </Button>
+            <p className="mt-4 text-center text-sm text-gray-600">
+              Já possui uma conta?{" "}
+              <Link to="/autenticacao/login" className="text-blue-600 hover:underline">
+                Fazer login
+              </Link>
+            </p>
+          </div>
         </form>
-
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Já possui uma conta?{" "}
-          <Link to="/autenticacao/login" className="text-blue-600 hover:underline">
-            Fazer login
-          </Link>
-        </p>
       </div>
     </div>
   );
