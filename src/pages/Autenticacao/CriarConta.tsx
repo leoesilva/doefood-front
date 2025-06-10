@@ -35,14 +35,16 @@ function verificarForcaSenha(senha: string) {
   const regras = {
     tamanho: senha.length >= 8,
     maiuscula: /[A-Z]/.test(senha),
+    minuscula: /[a-z]/.test(senha),
+    numero: /\d/.test(senha),
     especial: /[!@#$%^&*(),.?":{}|<>]/.test(senha),
   };
 
   const totalRegras = Object.values(regras).filter(Boolean).length;
 
   let forca: "fraca" | "media" | "forte" = "fraca";
-  if (totalRegras === 3) forca = "forte";
-  else if (totalRegras === 2) forca = "media";
+  if (totalRegras >= 4) forca = "forte";
+  else if (totalRegras === 3) forca = "media";
 
   return { forca, regras };
 }
@@ -67,8 +69,9 @@ export default function CriarConta() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarSenhaConfirmar, setMostrarSenhaConfirmar] = useState(false);
+  const [mostrarRegras, setMostrarRegras] = useState(false);
   const [tipo, setTipo] = useState("doador");
-  
+
   const [errors, setErrors] = useState({
     razaoSocial: "",
     nomeFantasia: "",
@@ -88,13 +91,8 @@ export default function CriarConta() {
 
   const navigate = useNavigate();
 
-  const { forca, regras } = verificarForcaSenha(senha);
+  const { regras } = verificarForcaSenha(senha);
 
-  const corForca = {
-    fraca: "bg-red-500",
-    media: "bg-yellow-400",
-    forte: "bg-green-500",
-  };
 
   // Função para buscar dados do CNPJ via Brasil API
   async function buscarDadosCNPJ(cnpjLimpo: string) {
@@ -111,7 +109,7 @@ export default function CriarConta() {
       setRazaoSocial(data.razao_social || "");
       setNomeFantasia(data.nome_fantasia || "");
 
-      setCep( formatarCep(data.cep) || "");
+      setCep(formatarCep(data.cep) || "");
       setTipoLogradouro(data.descricao_tipo_de_logradouro || "");
       setLogradouro(data.logradouro || "");
       setNumero(data.numero || "");
@@ -257,6 +255,22 @@ export default function CriarConta() {
         <form className="space-y-6" onSubmit={handleSubmit}>
           {/* Linha 1: CNPJ (1/2) e Tipo de usuário (1/2) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div>
+              <label htmlFor="tipo" className="block text-sm font-medium mb-1">
+                Tipo de usuário
+              </label>
+              <select
+                id="tipo"
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="w-full rounded border border-gray-300 p-2"
+              >
+                <option value="doador">Doador</option>
+                <option value="beneficiario">Beneficiário</option>
+              </select>
+            </div>
+
             <div>
               <label htmlFor="cnpj" className="block text-sm font-medium">
                 CNPJ
@@ -278,21 +292,8 @@ export default function CriarConta() {
                 <p className="text-sm text-red-500 mt-1">{errors.cnpj}</p>
               )}
             </div>
-            <div>
-              <label htmlFor="tipo" className="block text-sm font-medium mb-1">
-                Tipo de usuário
-              </label>
-              <select
-                id="tipo"
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value)}
-                className="w-full rounded border border-gray-300 p-2"
-              >
-                <option value="doador">Doador</option>
-                <option value="receptor">Receptor</option>
-              </select>
-            </div>
           </div>
+
 
           {/* Linha 2: Razão Social (grande) e Nome Fantasia (grande) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -334,63 +335,63 @@ export default function CriarConta() {
             </div>
           </div>
 
-            {/* Linha 3: Tipo Logradouro, Logradouro, Número (todos na mesma linha) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Linha 3: Tipo Logradouro, Logradouro, Número (todos na mesma linha) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label htmlFor="TipoLogradouro" className="block text-sm font-medium">
-              Rua, Avenida, etc.
+                Rua, Avenida, etc.
               </label>
               <Input
-              id="TipoLogradouro"
-              value={TipoLogradouro}
-              onChange={(e) => setTipoLogradouro(e.target.value)}
-              required
-              className={errors.TipoLogradouro ? "border-red-500" : ""}
+                id="TipoLogradouro"
+                value={TipoLogradouro}
+                onChange={(e) => setTipoLogradouro(e.target.value)}
+                required
+                className={errors.TipoLogradouro ? "border-red-500" : ""}
               />
               {errors.TipoLogradouro && (
-              <p className="text-sm text-red-500 mt-1">{errors.TipoLogradouro}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.TipoLogradouro}</p>
               )}
             </div>
             <div>
               <label htmlFor="logradouro" className="block text-sm font-medium">
-              Logradouro
+                Logradouro
               </label>
               <Input
-              id="logradouro"
-              value={logradouro}
-              onChange={(e) => {
-                setLogradouro(e.target.value);
-                setErrors((prev) => ({ ...prev, logradouro: "" }));
-              }}
-              required
-              className={errors.logradouro ? "border-red-500" : ""}
+                id="logradouro"
+                value={logradouro}
+                onChange={(e) => {
+                  setLogradouro(e.target.value);
+                  setErrors((prev) => ({ ...prev, logradouro: "" }));
+                }}
+                required
+                className={errors.logradouro ? "border-red-500" : ""}
               />
               {errors.logradouro && (
-              <p className="text-sm text-red-500 mt-1">{errors.logradouro}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.logradouro}</p>
               )}
             </div>
             <div>
               <label htmlFor="numero" className="block text-sm font-medium">
-              Número
+                Número
               </label>
               <Input
-              id="numero"
-              value={numero}
-              onChange={(e) => {
-                setNumero(e.target.value);
-                setErrors((prev) => ({ ...prev, numero: "" }));
-              }}
-              required
-              className={errors.numero ? "border-red-500" : ""}
+                id="numero"
+                value={numero}
+                onChange={(e) => {
+                  setNumero(e.target.value);
+                  setErrors((prev) => ({ ...prev, numero: "" }));
+                }}
+                required
+                className={errors.numero ? "border-red-500" : ""}
               />
               {errors.numero && (
-              <p className="text-sm text-red-500 mt-1">{errors.numero}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.numero}</p>
               )}
             </div>
-            </div>
+          </div>
 
-            {/* Linha 4: Complemento, Bairro */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Linha 4: Complemento, Bairro */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="complemento" className="block text-sm font-medium">
                 Complemento
@@ -507,10 +508,10 @@ export default function CriarConta() {
 
           {/* Linha 7: Senha, Confirmar Senha */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="senha" className="block text-sm font-medium">
-                Senha
-              </label>
+            {/* Campo Senha com Tooltip de Regras */}
+            <div className="relative">
+              <label htmlFor="senha" className="block text-sm font-medium">Senha</label>
+
               <div className="relative">
                 <Input
                   id="senha"
@@ -520,8 +521,10 @@ export default function CriarConta() {
                     setSenha(e.target.value);
                     setErrors((prev) => ({ ...prev, senha: "" }));
                   }}
+                  onFocus={() => setMostrarRegras(true)}
+                  onBlur={() => setTimeout(() => setMostrarRegras(false), 200)} // dá tempo de interagir com o balão
                   required
-                  className={errors.senha ? "border-red-500" : ""}
+                  className={errors.senha ? "border-red-500 pr-10" : "pr-10"}
                 />
                 <button
                   type="button"
@@ -532,24 +535,34 @@ export default function CriarConta() {
                   {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <div className="flex space-x-2 mt-1 text-sm">
-                <span
-                  className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${
-                    regras.tamanho ? "" : "opacity-30"
-                  }`}
-                ></span>
-                <span
-                  className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${
-                    regras.maiuscula ? "" : "opacity-30"
-                  }`}
-                ></span>
-                <span
-                  className={`w-1/3 h-1 rounded-full ${corForca[forca]} ${
-                    regras.especial ? "" : "opacity-30"
-                  }`}
-                ></span>
-              </div>
+
+              {/* Tooltip com regras */}
+              {mostrarRegras && (
+                <div className="absolute z-10 top-0 right-full mr-4 w-[280px] bg-gray-800 text-white text-sm rounded-md shadow-lg p-4">
+                  {/* Seta apontando para o campo */}
+                  <div className="absolute top-4 -right-2 w-3 h-3 bg-gray-800 rotate-45 shadow-md" />
+
+                  <p className="font-semibold mb-2">SUA SENHA DEVE CONTER:</p>
+                  <ul className="space-y-1">
+                    <li className={regras.maiuscula ? "text-green-400" : "text-gray-300"}>
+                      <span className="font-bold">ABC</span> 1 letra maiúscula
+                    </li>
+                    <li className={regras.minuscula ? "text-green-400" : "text-gray-300"}>
+                      <span className="font-bold">abc</span> 1 letra minúscula
+                    </li>
+                    <li className={regras.numero ? "text-green-400" : "text-gray-300"}>
+                      <span className="font-bold">123</span> 1 número
+                    </li>
+                    <li className={regras.tamanho ? "text-green-400" : "text-gray-300"}>
+                      <span className="font-bold">***</span> No mínimo 8 caracteres
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              {errors.senha && <p className="text-sm text-red-500 mt-1">{errors.senha}</p>}
             </div>
+
             <div>
               <label htmlFor="confirmarSenha" className="block text-sm font-medium">
                 Confirmar Senha
