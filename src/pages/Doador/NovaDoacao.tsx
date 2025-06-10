@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/shadcn/button";
 import ilustracao from "@/assets/doacao-ilustracao.webp"; 
+import { getAuth } from "firebase/auth";
+
 
 export default function NovaDoacao() {
   const navigate = useNavigate();
@@ -22,11 +24,54 @@ export default function NovaDoacao() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Doação cadastrada:", formData);
-    setMensagem("✅ Doação registrada com sucesso!");
-    setTimeout(() => navigate("/home-doador"), 2000);
+    setMensagem(""); // Limpa mensagem anterior
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setMensagem("Você precisa estar autenticado para doar.");
+        return;
+      }
+
+      // Recupera o UID do usuário autenticado
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setMensagem("Usuário não autenticado.");
+        return;
+      }
+      const uid = currentUser.uid;
+
+      // Monta o objeto da doação com o UID do doador
+      const doacao = {
+        alimento: formData.alimento,
+        quantidade: formData.quantidade,
+        validade: formData.validade,
+        doadorId: uid, // ou "usuarioId", conforme esperado pelo backend
+      };
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(doacao),
+      });
+
+      if (!response.ok) {
+        setMensagem("Erro ao registrar doação. Tente novamente.");
+        return;
+      }
+
+      setMensagem("✅ Doação registrada com sucesso!");
+      setTimeout(() => navigate("/doador"), 2000);
+    } catch (error: unknown) {
+      setMensagem("Erro ao registrar doação. Tente novamente.");
+      console.error(error);
+    }
   };
 
   const btnClass =
