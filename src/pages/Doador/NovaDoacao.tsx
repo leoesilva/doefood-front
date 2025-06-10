@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/shadcn/button";
-import ilustracao from "@/assets/doacao-ilustracao.webp"; // Imagem de doação
+import ilustracao from "@/assets/doacao-ilustracao.webp"; 
 
 export default function NovaDoacao() {
   const navigate = useNavigate();
@@ -11,8 +11,6 @@ export default function NovaDoacao() {
     alimento: "",
     quantidade: "",
     validade: "",
-    beneficiario: "",
-    endereco: "",
   });
 
   const [mensagem, setMensagem] = useState("");
@@ -30,6 +28,20 @@ export default function NovaDoacao() {
     setMensagem("✅ Doação registrada com sucesso!");
     setTimeout(() => navigate("/home-doador"), 2000);
   };
+
+  const btnClass =
+    "w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105";
+
+  // Calcula a data mínima (1 mês à frente)
+  const today = new Date();
+  const minDate = new Date(today);
+  minDate.setMonth(minDate.getMonth() + 1);
+
+  // Formata para yyyy-mm-dd
+  const yyyy = minDate.getFullYear();
+  const mm = String(minDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(minDate.getDate()).padStart(2, '0');
+  const minDateStr = `${yyyy}-${mm}-${dd}`;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -81,6 +93,9 @@ export default function NovaDoacao() {
                 type="number"
                 name="quantidade"
                 value={formData.quantidade}
+                min={0.1}
+                max={1000}
+                step={0.1}
                 onChange={handleChange}
                 required
                 className="w-full p-2 border border-gray-300 rounded"
@@ -97,42 +112,15 @@ export default function NovaDoacao() {
                 name="validade"
                 value={formData.validade}
                 onChange={handleChange}
+                min={minDateStr}
                 className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Beneficiario
-              </label>
-              <input
-                type="text"
-                name="beneficiario"
-                value={formData.beneficiario}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Nome da ONG"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Endereço para coleta ou entrega
-              </label>
-              <textarea
-                name="endereco"
-                value={formData.endereco}
-                onChange={handleChange}
-                required
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Rua, número, bairro, cidade..."
               />
             </div>
 
             <Button
               type="submit"
               variant="green"
+              className={btnClass}
             >
               Enviar Doação
             </Button>
