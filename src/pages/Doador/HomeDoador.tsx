@@ -18,19 +18,27 @@ import jsPDF from "jspdf";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
 import logo from "@/assets/doefood-logo.png"; // Importe o logo corretamente
 
-function formatarDataPorExtenso() {
+function formatarDataPorExtenso(data?: Date) {
   const meses = [
     "janeiro", "fevereiro", "março", "abril", "maio", "junho",
     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
   ];
-  const hoje = new Date();
+  const hoje = data || new Date();
   return `${hoje.getDate()} de ${meses[hoje.getMonth()]} de ${hoje.getFullYear()}`;
+}
+
+function formatarDataValidade(data: Date) {
+  // Adiciona 1 ano à data
+  const validade = new Date(data);
+  validade.setFullYear(validade.getFullYear() + 1);
+  return formatarDataPorExtenso(validade);
 }
 
 export default function HomeDoador() {
   const { user: authUser, logout } = useAuth();
   const [doador, setDoador] = useState<{razaoSocial?: string, cnpj?: string, municipio?: string} | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ultimaDoacao, setUltimaDoacao] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchDoador = async () => {
@@ -49,6 +57,45 @@ export default function HomeDoador() {
     fetchDoador();
   }, [authUser]);
 
+  // Busca a última doação do usuário autenticado
+  // Defina o tipo para doação
+  type Doacao = {
+    dataCriacao: string;
+    [key: string]: unknown;
+  };
+
+  useEffect(() => {
+    const fetchUltimaDoacao = async () => {
+      if (!authUser?.uid) return;
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+        const resp = await fetch(
+          `${import.meta.env.VITE_API_URL}/doacoes/doador/${authUser.uid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (!resp.ok) return;
+        const doacoes: Doacao[] = await resp.json();
+        if (Array.isArray(doacoes) && doacoes.length > 0) {
+          // Considera a última doação pela data mais recente
+          const ultima = doacoes
+            .filter((d: Doacao) => d.dataCriacao)
+            .sort((a: Doacao, b: Doacao) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime())[0];
+          if (ultima && ultima.dataCriacao) {
+            setUltimaDoacao(new Date(ultima.dataCriacao));
+          }
+        }
+      } catch {
+        // Silencie erros
+      }
+    };
+    fetchUltimaDoacao();
+  }, [authUser]);
+
   if (!authUser) return <Navigate to="/autenticacao/login" />;
 
   const btnClass =
@@ -56,14 +103,15 @@ export default function HomeDoador() {
 
   // Função para gerar PDF do certificado com o logo
   const handleDownloadCertificado = () => {
-    if (!doador) {
-      alert("Dados do doador não carregados.");
+    if (!doador || !ultimaDoacao) {
+      alert("Dados do doador ou data da última doação não carregados.");
       return;
     }
     const nome = doador.razaoSocial || "Nome do Doador";
     const cnpj = doador.cnpj || "CNPJ não informado";
-    const cidade = doador.municipio || "Sua Cidade";
-    const dataExtenso = formatarDataPorExtenso();
+    const cidade = "São Paulo"; // Cidade fixa
+    const dataExtenso = formatarDataPorExtenso(ultimaDoacao); // Data de emissão igual à última doação
+    const validadeExtenso = formatarDataValidade(ultimaDoacao);
 
     // Carregar a imagem do logo antes de gerar o PDF
     const img = new window.Image();
@@ -91,7 +139,6 @@ export default function HomeDoador() {
       doc.text("CERTIFICADO DE DOADOR", 148.5, 35, { align: "center" });
 
       // Logo centralizado (ajuste largura/altura conforme o logo)
-      // (x, y, largura, altura)
       doc.addImage(img, "PNG", 119, 41, 60, 28);
 
       // Nome do doador
@@ -134,15 +181,30 @@ export default function HomeDoador() {
         { align: "center", maxWidth: 200 }
       );
 
-      // Cidade e data
+      // Cidade e data de emissão (data da última doação)
       doc.setFontSize(13);
       doc.setTextColor(100, 100, 100);
       doc.text(`${cidade}, ${dataExtenso}`, 148.5, 153, { align: "center" });
 
-      // Rodapé
-      doc.setFontSize(10);
-      doc.setTextColor(180, 180, 180);
-      doc.text("DoeFood - Plataforma de Solidariedade", 148.5, 200, { align: "center" });
+      // Data de validade
+      doc.setFontSize(12);
+      doc.setTextColor(180, 100, 100);
+      doc.text(
+        `Válido até: ${validadeExtenso}`,
+        148.5,
+        165,
+        { align: "center" }
+      );
+
+      // Rodapé (dentro da moldura, cor mais visível)
+      doc.setFontSize(12);
+      doc.setTextColor(34, 139, 34); // Verde visível
+      doc.text(
+        "DoeFood - Plataforma de Solidariedade",
+        148.5,
+        195, // dentro da moldura (moldura termina em 200)
+        { align: "center" }
+      );
 
       doc.save(`Certificado-${nome.replace(/\s/g, "_")}.pdf`);
     };
@@ -178,34 +240,39 @@ export default function HomeDoador() {
           </motion.div>
 
           {/* Certificado */}
-          <motion.div
-            className="bg-green-50 border border-green-200 rounded-xl p-6 shadow-inner flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up delay-100"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="flex items-center gap-4">
-              <FaAward className="text-4xl text-[#FF9800]" />
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Certificado de Doador
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  Reconhecimento simbólico pelo seu compromisso social
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="orange"
-              className="px-6 py-4 text-base rounded-xl transition-transform hover:scale-105 flex items-center gap-2"
-              onClick={handleDownloadCertificado}
-              title="Baixar certificado em PDF"
-              disabled={loading || !doador}
+          {ultimaDoacao && (new Date().getTime() - ultimaDoacao.getTime() < 365 * 24 * 60 * 60 * 1000) && (
+            <motion.div
+              className="bg-green-50 border border-green-200 rounded-xl p-6 shadow-inner flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up delay-100"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
             >
-              <FaDownload className="text-lg" />
-              Baixar Certificado
-            </Button>
-          </motion.div>
+              <div className="flex items-center gap-4">
+                <FaAward className="text-4xl text-[#FF9800]" />
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Certificado de Doador
+                  </h2>
+                  <p className="text-gray-600 text-sm">
+                    Reconhecimento simbólico pelo seu compromisso social
+                  </p>
+                  <p className="text-gray-600 text-xs mt-1">
+                    Válido até: <span className="font-semibold">{formatarDataValidade(ultimaDoacao)}</span>
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="orange"
+                className="px-6 py-4 text-base rounded-xl transition-transform hover:scale-105 flex items-center gap-2"
+                onClick={handleDownloadCertificado}
+                title="Baixar certificado em PDF"
+                disabled={loading || !doador}
+              >
+                <FaDownload className="text-lg" />
+                Baixar Certificado
+              </Button>
+            </motion.div>
+          )}
 
           {/* Ações */}
           <motion.div

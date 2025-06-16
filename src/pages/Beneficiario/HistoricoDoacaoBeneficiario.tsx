@@ -3,11 +3,21 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/shadcn/button";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { Table } from "antd";
+import { Table, Tooltip } from "antd";
 
 export default function HistoricoDoacaoBeneficiario() {
   const navigate = useNavigate();
   const [filtro, setFiltro] = useState("");
+  type Endereco = {
+    tipoLogradouro?: string;
+    logradouro?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    municipio?: string;
+    estado?: string;
+    cep?: string;
+  };
   interface Doacao {
     id: string;
     alimento: string;
@@ -15,10 +25,34 @@ export default function HistoricoDoacaoBeneficiario() {
     validade: string;
     doadorId?: string;
     doador?: string;
+    doadorCnpj?: string;
+    doadorRazaoSocial?: string;
+    doadorNomeFantasia?: string;
+    doadorEndereco?: Endereco;
+    dataReserva?: string;
   }
 
   const [doacoes, setDoacoes] = useState<Doacao[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function formatarEndereco(enderecoObj: Endereco | null | undefined) {
+    if (!enderecoObj) return "-";
+    const {
+      tipoLogradouro,
+      logradouro,
+      numero,
+      complemento,
+      bairro,
+      municipio,
+      estado,
+      cep,
+    } = enderecoObj;
+    return (
+      `${tipoLogradouro ? tipoLogradouro + " " : ""}${logradouro || ""}, ${numero || ""}` +
+      `${complemento ? ", " + complemento : ""}, ${bairro || ""} - ${municipio || ""} / ${estado || ""}` +
+      `${cep ? " - " + cep : ""}`
+    );
+  }
 
   useEffect(() => {
     const fetchDoacoes = async () => {
@@ -45,7 +79,7 @@ export default function HistoricoDoacaoBeneficiario() {
         if (!response.ok) throw new Error("Erro ao buscar doações");
         const data = await response.json();
 
-        // Buscar nomes dos doadores
+        // Buscar dados dos doadores
         const doadorIds: string[] = [
           ...new Set(
             data
@@ -54,7 +88,13 @@ export default function HistoricoDoacaoBeneficiario() {
           ),
         ] as string[];
 
-        const nomesDoadores: Record<string, string> = {};
+        type DoadorInfo = {
+          razaoSocial: string;
+          nomeFantasia: string;
+          cnpj: string;
+          endereco: Endereco;
+        };
+        const doadores: Record<string, DoadorInfo> = {};
         await Promise.all(
           doadorIds.map(async (id: string) => {
             try {
@@ -68,23 +108,52 @@ export default function HistoricoDoacaoBeneficiario() {
               );
               if (resp.ok) {
                 const usuario = await resp.json();
-                nomesDoadores[id] = usuario.nome || usuario.nomeFantasia || usuario.razaoSocial || "-";
+                doadores[id] = {
+                  razaoSocial: usuario.razaoSocial || "-",
+                  nomeFantasia: usuario.nomeFantasia || "-",
+                  cnpj: usuario.cnpj || "-",
+                  endereco: usuario.endereco || {},
+                };
               } else {
-                nomesDoadores[id] = "-";
+                doadores[id] = {
+                  razaoSocial: "-",
+                  nomeFantasia: "-",
+                  cnpj: "-",
+                  endereco: {},
+                };
               }
             } catch {
-              nomesDoadores[id] = "-";
+              doadores[id] = {
+                razaoSocial: "-",
+                nomeFantasia: "-",
+                cnpj: "-",
+                endereco: {},
+              };
             }
           })
         );
 
-        // Adiciona o nome do doador em cada doação
-        const doacoesComNome = data.map((d: Doacao) => ({
-          ...d,
-          doador: d.doadorId ? nomesDoadores[d.doadorId] : "-",
-        }));
+        // Adiciona os dados do doador em cada doação
+        const doacoesComDoador = data.map((d: Doacao) => {
+          const doador = d.doadorId ? doadores[d.doadorId] : null;
+          return {
+            ...d,
+            doador: doador ? doador.razaoSocial : "-",
+            doadorRazaoSocial: doador ? doador.razaoSocial : "-",
+            doadorNomeFantasia: doador ? doador.nomeFantasia : "-",
+            doadorCnpj: doador ? doador.cnpj : "-",
+            doadorEndereco: doador ? doador.endereco : null,
+          };
+        });
 
-        setDoacoes(doacoesComNome);
+        // Ordena pelas datas mais recentes de reserva
+        doacoesComDoador.sort((a: { dataReserva: string | number | Date; }, b: { dataReserva: string | number | Date; }) => {
+          const dataA = a.dataReserva ? new Date(a.dataReserva).getTime() : 0;
+          const dataB = b.dataReserva ? new Date(b.dataReserva).getTime() : 0;
+          return dataB - dataA;
+        });
+
+        setDoacoes(doacoesComDoador);
       } catch (err) {
         console.error(err);
         setDoacoes([]);
@@ -102,24 +171,68 @@ export default function HistoricoDoacaoBeneficiario() {
       (doacao.doador || "").toLowerCase().includes(filtro.toLowerCase())
   );
 
-  // Colunas da tabela (sem endereço e recebido em)
+  // Colunas da tabela padronizadas
   const columns = [
-    { title: "Alimento", dataIndex: "alimento", key: "alimento", responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
-    { title: "Quantidade", dataIndex: "quantidade", key: "quantidade", responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
+    {
+      title: "Alimento",
+      dataIndex: "alimento",
+      key: "alimento",
+      responsive: ["xs", "sm", "md", "lg"] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+    },
+    {
+      title: "Quantidade",
+      dataIndex: "quantidade",
+      key: "quantidade",
+      responsive: ["sm", "md", "lg"] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+    },
     {
       title: "Validade",
       dataIndex: "validade",
       key: "validade",
       render: (text: string) =>
         text ? new Date(text).toLocaleDateString("pt-BR") : "-",
-      responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+      responsive: ["sm", "md", "lg"] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
     },
     {
       title: "Doador",
       dataIndex: "doador",
       key: "doador",
-      render: (text: string) => text || "-",
-      responsive: ['md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+      render: (_: string, record: Doacao) =>
+        record.doador && record.doador !== "-" ? (
+          <Tooltip
+            title={
+              <div>
+                <div>
+                  <b>CNPJ:</b> {record.doadorCnpj || "-"}
+                </div>
+                <div>
+                  <b>Razão Social:</b> {record.doadorRazaoSocial || "-"}
+                </div>
+                <div>
+                  <b>Nome Fantasia:</b> {record.doadorNomeFantasia || "-"}
+                </div>
+                <div>
+                  <b>Endereço:</b> {formatarEndereco(record.doadorEndereco)}
+                </div>
+              </div>
+            }
+          >
+            <span className="underline cursor-pointer">
+              {record.doadorRazaoSocial}
+            </span>
+          </Tooltip>
+        ) : (
+          "-"
+        ),
+      responsive: ["md", "lg"] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+    },
+    {
+      title: "Reservado em",
+      dataIndex: "dataReserva",
+      key: "dataReserva",
+      render: (text: string) =>
+        text ? new Date(text).toLocaleString("pt-BR") : "-",
+      responsive: ["sm", "md", "lg"] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
     },
   ];
 
@@ -129,8 +242,6 @@ export default function HistoricoDoacaoBeneficiario() {
         <h1 className="text-3xl font-bold text-green-700 mb-8 text-center">
           Histórico de Doações Recebidas
         </h1>
-
-        {/* 🔍 Campo de Filtro Global */}
         <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <input
             type="text"
@@ -140,7 +251,6 @@ export default function HistoricoDoacaoBeneficiario() {
             onChange={(e) => setFiltro(e.target.value)}
           />
         </div>
-
         <Table
           columns={columns}
           dataSource={doacoesFiltradas}
@@ -153,7 +263,6 @@ export default function HistoricoDoacaoBeneficiario() {
           pagination={{ pageSize: 10 }}
           scroll={{ x: true }}
         />
-
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
           <Button
             onClick={() => navigate(-1)}
