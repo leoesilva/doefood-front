@@ -32,6 +32,7 @@ import HomeBeneficiario from "@/pages/Beneficiario/HomeBeneficiario";
 import BuscarDoacao from "@/pages/Beneficiario/BuscarDoacao";
 import HistoricoDoacaoBeneficiario from "@/pages/Beneficiario/HistoricoDoacaoBeneficiario";
 import EditarPerfilBeneficiario from "@/pages/Beneficiario/EditarPerfilBeneficiario";
+import RedefinirSenha from "@/pages/Autenticacao/RedefinirSenha";
 
 const RoutesConfig = () => {
   return (
@@ -43,6 +44,7 @@ const RoutesConfig = () => {
       <Route path="/autenticacao/login" element={<Login />} />
       <Route path="/autenticacao/criar-conta" element={<CriarConta />} />
       <Route path="/autenticacao/esqueci-senha" element={<EsqueceuSenha />} />
+      <Route path="/autenticacao/redefinir-senha/:token" element={<RedefinirSenha/>} />
 
       {/* Rotas do Doador */}
       <Route
