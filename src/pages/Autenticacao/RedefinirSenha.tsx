@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -28,11 +28,9 @@ export default function RedefinirSenha() {
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
   const navigate = useNavigate();
-  const location = useLocation();
+  const { token } = useParams<{ token: string }>();
 
-  // Token da URL
-  const params = new URLSearchParams(location.search);
-  const token = params.get("token") || "";
+  const url = `${import.meta.env.VITE_API_URL}/autenticacao/redefinir-senha/${token}`;
 
   const { forca, regras } = verificarForcaSenha(senha);
 
@@ -51,19 +49,22 @@ export default function RedefinirSenha() {
     }
 
     try {
-      const resp = await fetch(`/auth/redefinir-senha/${token}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const resp = await fetch(url, {
+        method: 'POST',
         body: JSON.stringify({ novaSenha: senha }),
+        headers: { 'Content-Type': 'application/json' }
       });
       if (resp.ok) {
         setSucesso("Senha redefinida com sucesso! Faça login.");
+        console.log("Senha redefinida com sucesso!");
         setTimeout(() => navigate("/autenticacao/login"), 2000);
       } else {
         const data = await resp.json();
+        console.error("Erro ao redefinir senha:", data);
         setErro(data.mensagem || "Erro ao redefinir senha.");
       }
     } catch {
+      console.error("Erro inesperado ao redefinir senha.");
       setErro("Erro inesperado. Tente novamente.");
     }
   };
