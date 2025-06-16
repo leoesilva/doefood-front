@@ -3,11 +3,10 @@ import Footer from "@/components/Footer";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/shadcn/button";
-import ilustracao from "@/assets/doacao-ilustracao.webp"; 
+import ilustracao from "@/assets/doacao-ilustracao.webp";
 import { getAuth } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 
 export default function NovaDoacao() {
   const navigate = useNavigate();
@@ -16,8 +15,6 @@ export default function NovaDoacao() {
     quantidade: "",
     validade: "",
   });
-
-  const [mensagem] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -50,7 +47,7 @@ export default function NovaDoacao() {
         validade: formData.validade,
         doadorId: uid,
         dataCriacao: new Date().toISOString(),
-        disponivel: true, // campo oculto indicando disponibilidade
+        disponivel: true,
       };
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {
@@ -67,23 +64,21 @@ export default function NovaDoacao() {
         return;
       }
 
-      toast.success(" Doação registrada com sucesso!");
-      setFormData({ alimento: "", quantidade: "", validade: "" }); // Limpa os campos
-    } catch (error: unknown) {
+      toast.success("Doação registrada com sucesso!");
+      setFormData({ alimento: "", quantidade: "", validade: "" });
+
+      // Redireciona para o mapa após sucesso
+      setTimeout(() => navigate("/buscar-doacao"), 1500);
+    } catch (error) {
       toast.error("Erro ao registrar doação. Tente novamente.");
       console.error(error);
     }
   };
 
-  const btnClass =
-    "w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105";
-
   // Calcula a data mínima (1 mês à frente)
   const today = new Date();
   const minDate = new Date(today);
   minDate.setMonth(minDate.getMonth() + 1);
-
-  // Formata para yyyy-mm-dd
   const yyyy = minDate.getFullYear();
   const mm = String(minDate.getMonth() + 1).padStart(2, '0');
   const dd = String(minDate.getDate()).padStart(2, '0');
@@ -95,7 +90,6 @@ export default function NovaDoacao() {
       <main className="flex-1">
         <div className="text-center py-8 px-4">
           <h1 className="text-3xl font-bold text-green-700 mb-2">
-            {" "}
             Nova Doação
           </h1>
           <p className="text-gray-700 max-w-xl mx-auto">
@@ -167,7 +161,7 @@ export default function NovaDoacao() {
             <Button
               type="submit"
               variant="green"
-              className={btnClass}
+              className="w-full flex items-center justify-center gap-3 py-5 text-lg rounded-xl transition-transform transform hover:scale-105"
             >
               Enviar Doação
             </Button>
@@ -180,16 +174,9 @@ export default function NovaDoacao() {
             >
               ← Voltar
             </Button>
-
-            {mensagem && (
-              <div className="mt-4 text-green-700 font-medium bg-green-50 p-3 rounded border border-green-200">
-                {mensagem}
-              </div>
-            )}
           </form>
         </div>
       </main>
-
       <Footer />
     </div>
   );
