@@ -5,10 +5,12 @@ import L from "leaflet";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/shadcn/button";
-import { FaSearch, FaMapMarkerAlt, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaSearch, FaMapMarkerAlt } from "react-icons/fa";
 import "leaflet/dist/leaflet.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getAuth } from "firebase/auth";
+import Modal from "antd/es/modal/Modal";
 
 const markerIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
@@ -35,51 +37,57 @@ interface Usuario {
   estado: string;
 }
 
-interface DoacaoComCoords {
-  id: string;
-  alimento: string;
-  quantidade: number;
-  validade: string;
-  nomeDoador: string;
+interface DoadorComDoacoes {
+  doadorId: string;
+  razaoSocial: string;
   endereco: string;
   lat: number;
   lng: number;
-  disponivel: boolean;
-}
-
-function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  doacoes: Doacao[];
 }
 
 function FlyToLocation({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
     map.flyTo(center, 13);
-  }, [center]);
+  }, [center, map]);
   return null;
 }
 
 export default function BuscarDoacao() {
-  const [doacoes, setDoacoes] = useState<DoacaoComCoords[]>([]);
-  const [mapCenter, setMapCenter] = useState<[number, number]>([-23.55052, -46.633308]);
+  const [doadores, setDoadores] = useState<DoadorComDoacoes[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([-23.55052, -46.633308]);
   const [mostrarProximas, setMostrarProximas] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reservingId, setReservingId] = useState<string | null>(null);
+  const [modalDoador, setModalDoador] = useState<DoadorComDoacoes | null>(null);
+  const [maisProximo, setMaisProximo] = useState<DoadorComDoacoes | null>(null);
 
+  // Função para calcular distância
+  function calcularDistancia(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ) {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // Ao carregar a página, busca endereço cadastrado do usuário e define userLocation e maisProximo
   useEffect(() => {
-    async function fetchDoacoes() {
+    async function fetchDoacoesEUsuario() {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
@@ -88,58 +96,127 @@ export default function BuscarDoacao() {
           setLoading(false);
           return;
         }
-        const respDoacoes = await fetch(`${import.meta.env.VITE_API_URL}/doacoes`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-        if (!respDoacoes.ok) throw new Error("Falha ao buscar doações");
-        const doacoesAll: Doacao[] = await respDoacoes.json();
-
-        const doacoesComCoords: DoacaoComCoords[] = [];
-        for (const doacao of doacoesAll) {
-          const respUsuario = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${doacao.doadorId}`, {
+        // Busca doações
+        const respDoacoes = await fetch(
+          `${import.meta.env.VITE_API_URL}/doacoes`,
+          {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          });
+          }
+        );
+        if (!respDoacoes.ok) throw new Error("Falha ao buscar doações");
+        const doacoesAll: Doacao[] = await respDoacoes.json();
+
+        // Agrupa doações por doadorId
+        const doacoesPorDoador: Record<string, Doacao[]> = {};
+        doacoesAll.forEach((doacao) => {
+          if (doacao.disponivel) {
+            if (!doacoesPorDoador[doacao.doadorId]) {
+              doacoesPorDoador[doacao.doadorId] = [];
+            }
+            doacoesPorDoador[doacao.doadorId].push(doacao);
+          }
+        });
+
+        const doadoresArray: DoadorComDoacoes[] = [];
+        for (const doadorId of Object.keys(doacoesPorDoador)) {
+          const respUsuario = await fetch(
+            `${import.meta.env.VITE_API_URL}/usuarios/${doadorId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
           if (!respUsuario.ok) continue;
           const usuario: Usuario = await respUsuario.json();
+
           const endereco = `${usuario.logradouro}, ${usuario.numero}, ${usuario.bairro}, ${usuario.municipio}, ${usuario.estado}`;
-          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(endereco)}&format=json&limit=1`;
+          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+            endereco
+          )}&format=json&limit=1`;
           const geoResp = await fetch(url);
           const geoJson = await geoResp.json();
+
           if (geoJson && geoJson[0]) {
-            doacoesComCoords.push({
-              id: doacao.id,
-              alimento: doacao.alimento,
-              quantidade: doacao.quantidade,
-              validade: doacao.validade,
-              nomeDoador: usuario.nomeFantasia || usuario.razaoSocial || "Doador",
+            doadoresArray.push({
+              doadorId,
+              razaoSocial: usuario.razaoSocial || usuario.nomeFantasia || "Doador",
               endereco,
               lat: parseFloat(geoJson[0].lat),
               lng: parseFloat(geoJson[0].lon),
-              disponivel: doacao.disponivel,
+              doacoes: doacoesPorDoador[doadorId],
             });
           }
         }
-        setDoacoes(doacoesComCoords);
-        if (doacoesComCoords.length > 0) {
-          setMapCenter([doacoesComCoords[0].lat, doacoesComCoords[0].lng]);
+        setDoadores(doadoresArray);
+
+        // Busca usuário autenticado
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        if (!currentUser) {
+          setLoading(false);
+          return;
+        }
+        const uid = currentUser.uid;
+        const respUsuario = await fetch(
+          `${import.meta.env.VITE_API_URL}/usuarios/${uid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!respUsuario.ok) {
+          setLoading(false);
+          return;
+        }
+        const usuario: Usuario = await respUsuario.json();
+        const enderecoUsuario = `${usuario.logradouro}, ${usuario.numero}, ${usuario.bairro}, ${usuario.municipio}, ${usuario.estado}`;
+        const urlUsuario = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+          enderecoUsuario
+        )}&format=json&limit=1`;
+        const geoRespUsuario = await fetch(urlUsuario);
+        const geoJsonUsuario = await geoRespUsuario.json();
+
+        if (geoJsonUsuario && geoJsonUsuario[0]) {
+          const lat = parseFloat(geoJsonUsuario[0].lat);
+          const lng = parseFloat(geoJsonUsuario[0].lon);
+          setUserLocation([lat, lng]);
+          setMapCenter([lat, lng]);
+
+          // Encontrar doador mais próximo do endereço cadastrado
+          if (doadoresArray.length > 0) {
+            let menorDist = Infinity;
+            let maisProximoDoador = doadoresArray[0];
+            doadoresArray.forEach((d) => {
+              const dist = calcularDistancia(lat, lng, d.lat, d.lng);
+              if (dist < menorDist) {
+                menorDist = dist;
+                maisProximoDoador = d;
+              }
+            });
+            setMaisProximo(maisProximoDoador);
+            setMapCenter([maisProximoDoador.lat, maisProximoDoador.lng]);
+          }
         }
       } catch {
         toast.error("Erro ao buscar doações ou endereços.");
       }
       setLoading(false);
     }
-    fetchDoacoes();
+    fetchDoacoesEUsuario();
   }, []);
 
   const handleSearch = async () => {
     if (!searchTerm) return;
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchTerm)}&format=json&limit=1`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+      searchTerm
+    )}&format=json&limit=1`;
     try {
       const res = await fetch(url);
       const data = await res.json();
@@ -153,6 +230,7 @@ export default function BuscarDoacao() {
     }
   };
 
+  // Ao clicar em "Ver doações próximas", usa localização atual e busca novo doador mais próximo
   const handleVerProximas = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocalização não é suportada pelo seu navegador.");
@@ -162,8 +240,25 @@ export default function BuscarDoacao() {
       (position) => {
         const { latitude, longitude } = position.coords;
         setUserLocation([latitude, longitude]);
-        setMapCenter([latitude, longitude]);
         setMostrarProximas(true);
+
+        // Encontrar o doador mais próximo da localização atual
+        if (doadores.length > 0) {
+          let menorDist = Infinity;
+          let maisProximoDoador = doadores[0];
+          doadores.forEach((d) => {
+            const dist = calcularDistancia(latitude, longitude, d.lat, d.lng);
+            if (dist < menorDist) {
+              menorDist = dist;
+              maisProximoDoador = d;
+            }
+          });
+          setMaisProximo(maisProximoDoador);
+          setMapCenter([maisProximoDoador.lat, maisProximoDoador.lng]);
+        } else {
+          setMaisProximo(null);
+          setMapCenter([latitude, longitude]);
+        }
       },
       () => {
         toast.error("Não foi possível obter sua localização.");
@@ -180,34 +275,92 @@ export default function BuscarDoacao() {
         setReservingId(null);
         return;
       }
-      const resp = await fetch(`${import.meta.env.VITE_API_URL}/doacoes/${id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ disponivel: false }),
-      });
+      const auth = getAuth();
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        toast.error("Usuário não autenticado.");
+        setReservingId(null);
+        return;
+      }
+      const uid = currentUser.uid;
+      if (!uid) {
+        toast.error("Não foi possível identificar o beneficiário.");
+        setReservingId(null);
+        return;
+      }
+      const resp = await fetch(
+        `${import.meta.env.VITE_API_URL}/doacoes/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ disponivel: false, beneficiarioId: uid }),
+        }
+      );
       if (!resp.ok) throw new Error("Falha ao reservar doação");
-      setDoacoes((prev) =>
-        prev.map((d) =>
-          d.id === id ? { ...d, disponivel: false } : d
+
+      // Atualiza o estado removendo a doação reservada do modal
+      setDoadores((prev) =>
+        prev.map((doador) =>
+          doador.doacoes.some((d) => d.id === id)
+            ? {
+                ...doador,
+                doacoes: doador.doacoes.map((d) =>
+                  d.id === id ? { ...d, disponivel: false } : d
+                ),
+              }
+            : doador
         )
       );
+      // Atualiza o modalDoador para refletir a mudança imediatamente
+      setModalDoador((prev) =>
+        prev
+          ? {
+              ...prev,
+              doacoes: prev.doacoes.map((d) =>
+                d.id === id ? { ...d, disponivel: false } : d
+              ),
+            }
+          : null
+      );
+
       toast.success("Doação reservada com sucesso!");
+
+      // Após atualizar, verifica se todas as doações do doador foram reservadas
+      setTimeout(() => {
+        const doadorAtualizado = doadores.find((d) =>
+          d.doacoes.some((doacao) => doacao.id === id)
+        );
+        const todasReservadas =
+          doadorAtualizado &&
+          doadorAtualizado.doacoes.every((d) => !d.disponivel);
+
+        // Também verifica no modalDoador atualizado
+        const todasReservadasModal =
+          modalDoador &&
+          modalDoador.doacoes
+            .map((d) =>
+              d.id === id ? { ...d, disponivel: false } : d
+            )
+            .every((d) => !d.disponivel);
+
+        if (todasReservadas || todasReservadasModal) {
+          setModalDoador(null);
+          setTimeout(() => {
+            window.location.reload();
+          }, 700); // delay breve para UX
+        }
+      }, 300);
     } catch {
       toast.error("Erro ao reservar doação.");
     }
     setReservingId(null);
   };
 
-  // Filtra apenas as doações disponíveis
-  const doacoesFiltradas = mostrarProximas && userLocation
-    ? doacoes.filter((d) =>
-        d.disponivel &&
-        calcularDistancia(userLocation[0], userLocation[1], d.lat, d.lng) <= 5
-      )
-    : doacoes.filter((d) => d.disponivel);
+  // Não filtre os doadores, mantenha todos os marcadores no mapa
+  const doadoresFiltrados = doadores;
 
   return (
     <>
@@ -266,59 +419,51 @@ export default function BuscarDoacao() {
                   </Popup>
                 </Marker>
               )}
-              {doacoesFiltradas.map((doacao) => (
+              {doadoresFiltrados.map((doador) => (
                 <Marker
-                  key={doacao.id}
-                  position={[doacao.lat, doacao.lng]}
+                  key={doador.doadorId}
+                  position={[doador.lat, doador.lng]}
                   icon={markerIcon}
                 >
                   <Popup>
-                    <div style={{
-                      minWidth: 220,
-                      fontFamily: "Arial, sans-serif",
-                      padding: 8
-                    }}>
-                      <div style={{ fontWeight: "bold", fontSize: 18, color: "#388e3c" }}>
-                        {doacao.alimento}
-                      </div>
-                      <div style={{ margin: "4px 0", fontSize: 15 }}>
-                        <strong>Quantidade:</strong> {doacao.quantidade}
-                      </div>
-                      <div style={{ fontSize: 15 }}>
-                        <strong>Validade:</strong> {doacao.validade}
-                      </div>
-                      <div style={{ fontSize: 15, margin: "4px 0" }}>
-                        <strong>Doador:</strong> {doacao.nomeDoador}
-                      </div>
-                      <div style={{ fontSize: 14, color: "#555" }}>
-                        {doacao.endereco}
-                      </div>
-                      <div style={{ margin: "8px 0" }}>
-                        <span style={{
-                          display: "inline-flex",
-                          alignItems: "center",
+                    <div
+                      style={{
+                        minWidth: 220,
+                        fontFamily: "Arial, sans-serif",
+                        padding: 8,
+                      }}
+                    >
+                      <div
+                        style={{
                           fontWeight: "bold",
-                          color: "#388e3c"
-                        }}>
-                          <FaCheckCircle style={{ marginRight: 4 }} />
-                          Disponível
-                        </span>
+                          fontSize: 18,
+                          color: "#388e3c",
+                        }}
+                      >
+                        {doador.razaoSocial}
+                        {maisProximo && doador.doadorId === maisProximo.doadorId && (
+                          <span style={{ color: "#388e3c", marginLeft: 8 }}>
+                            (Mais próximo)
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 14, color: "#555", margin: "4px 0" }}>
+                        {doador.endereco}
                       </div>
                       <Button
                         variant="green"
                         size="sm"
-                        disabled={reservingId === doacao.id}
-                        onClick={() => handleReservar(doacao.id)}
                         style={{
-                          marginTop: 6,
+                          marginTop: 8,
                           width: "100%",
                           background: "#388e3c",
                           color: "#fff",
                           borderRadius: 8,
-                          fontWeight: "bold"
+                          fontWeight: "bold",
                         }}
+                        onClick={() => setModalDoador(doador)}
                       >
-                        {reservingId === doacao.id ? "Reservando..." : "Reservar"}
+                        Ver Doações Disponíveis
                       </Button>
                     </div>
                   </Popup>
@@ -335,6 +480,67 @@ export default function BuscarDoacao() {
             <a href="/">← Voltar para a Home</a>
           </Button>
         </div>
+        {/* Modal de doações do doador */}
+        <Modal
+          open={!!modalDoador}
+          onCancel={() => setModalDoador(null)}
+          footer={null}
+          title={
+            modalDoador
+              ? `Doações de ${modalDoador.razaoSocial}`
+              : "Doações disponíveis"
+          }
+        >
+          {modalDoador && (
+            <div className="space-y-4">
+              {modalDoador.doacoes.filter((d) => d.disponivel).length === 0 ? (
+                <div className="text-center text-gray-500">
+                  Nenhuma doação disponível deste doador.
+                </div>
+              ) : (
+                modalDoador.doacoes
+                  .filter((d) => d.disponivel)
+                  .map((doacao) => (
+                    <div
+                      key={doacao.id}
+                      className="border rounded-lg p-4 flex flex-col gap-2 bg-gray-50"
+                    >
+                      <div>
+                        <span className="font-semibold">Alimento:</span>{" "}
+                        {doacao.alimento}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Quantidade:</span>{" "}
+                        {doacao.quantidade}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Validade:</span>{" "}
+                        {doacao.validade}
+                      </div>
+                      <Button
+                        variant="green"
+                        size="sm"
+                        disabled={reservingId === doacao.id}
+                        onClick={() => handleReservar(doacao.id)}
+                        style={{
+                          marginTop: 6,
+                          width: "100%",
+                          background: "#388e3c",
+                          color: "#fff",
+                          borderRadius: 8,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {reservingId === doacao.id
+                          ? "Reservando..."
+                          : "Reservar"}
+                      </Button>
+                    </div>
+                  ))
+              )}
+            </div>
+          )}
+        </Modal>
       </main>
       <Footer />
     </>
