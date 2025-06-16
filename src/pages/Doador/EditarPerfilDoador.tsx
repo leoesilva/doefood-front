@@ -66,9 +66,11 @@ export default function EditarPerfilDoador() {
         );
         if (!response.ok) throw new Error("Erro ao buscar perfil");
         const data = await response.json();
+        // Espalha os campos de endereço no formData, mantendo o email do usuário autenticado
         setFormData((prev) => ({
           ...prev,
           ...data,
+          ...(data.endereco || {}),
           email: currentUser.email || prev.email || "",
         }));
       } catch (err) {
@@ -130,7 +132,7 @@ export default function EditarPerfilDoador() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    // Máscaras
+    // Máscaras de exibição
     let valor = value;
     if (name === "cnpj") valor = formatarCNPJ(value);
     if (name === "cep") valor = formatarCep(value);
@@ -157,7 +159,6 @@ export default function EditarPerfilDoador() {
     if (!formData.cnpj || formData.cnpj.replace(/\D/g, "").length !== 14)
       novosErros.cnpj = "CNPJ inválido. Deve conter 14 dígitos.";
     if (!formData.razaoSocial) novosErros.razaoSocial = "Razão Social é obrigatória.";
-    if (!formData.nomeFantasia) novosErros.nomeFantasia = "Nome Fantasia é obrigatória.";
     if (!formData.cep) novosErros.cep = "CEP é obrigatório.";
     if (!formData.logradouro) novosErros.logradouro = "Logradouro é obrigatório.";
     if (!formData.bairro) novosErros.bairro = "Bairro é obrigatório.";
@@ -182,20 +183,41 @@ export default function EditarPerfilDoador() {
       if (!token || !currentUser) return;
       const uid = currentUser.uid;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { email, tipo, ...dadosEditaveis } = formData;
+      const { email, tipo, cep, logradouro, bairro, municipio, estado, numero, complemento, ...rest } = formData;
+
+      // Monta o objeto de endereço SEM máscara
+      const endereco = {
+        cep: (cep || "").replace(/\D/g, ""),
+        logradouro,
+        bairro,
+        municipio,
+        estado,
+        numero: (numero || "").replace(/\D/g, ""),
+        complemento,
+      };
+
+      // Monta o payload final SEM máscara nos campos aplicáveis
+      const payload = {
+        ...rest,
+        nomeFantasia: formData.nomeFantasia,
+        razaoSocial: formData.razaoSocial,
+        cnpj: (formData.cnpj || "").replace(/\D/g, ""),
+        tipo: formData.tipo,
+        endereco,
+      };
+
       await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${uid}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(dadosEditaveis),
+        body: JSON.stringify(payload),
       });
       setEditavel({});
       toast.success("Perfil atualizado com sucesso!");
-    } catch (err) {
+    } catch {
       toast.error("Erro ao salvar alterações.");
-      console.error(err);
     }
   };
 
@@ -207,7 +229,6 @@ export default function EditarPerfilDoador() {
       !formData.cnpj ||
       formData.cnpj.replace(/\D/g, "").length !== 14 ||
       !formData.razaoSocial ||
-      !formData.nomeFantasia ||
       !formData.cep ||
       !formData.logradouro ||
       !formData.bairro ||
@@ -232,7 +253,7 @@ export default function EditarPerfilDoador() {
     "estado",
   ];
 
-  // Lista de campos do formulário (ordem e labels iguais ao CriarConta)
+  // Lista de campos do formulário (sem tipoLogradouro)
   const campos = [
     { name: "tipo", label: "Tipo de usuário" },
     { name: "cnpj", label: "CNPJ" },
@@ -259,49 +280,87 @@ export default function EditarPerfilDoador() {
 
           <form className="space-y-6" onSubmit={handleSalvar}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {campos.map((campo) => (
-                <div key={campo.name} className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {campo.label}
-                  </label>
-                  <Input
-                    name={campo.name}
-                    value={formData[campo.name as keyof typeof formData] || ""}
-                    onChange={handleChange}
-                    readOnly={
-                      camposSomenteLeitura.includes(campo.name) ||
-                      !editavel[campo.name]
-                    }
-                    disabled={camposSomenteLeitura.includes(campo.name)}
-                    className={
-                      camposSomenteLeitura.includes(campo.name)
-                        ? "bg-gray-100 cursor-not-allowed"
-                        : editavel[campo.name]
-                        ? ""
-                        : "bg-gray-100"
-                    }
-                  />
-                  {/* Ícone de lápis para liberar edição */}
-                  {!camposSomenteLeitura.includes(campo.name) && (
-                    <button
-                      type="button"
-                      className={`absolute right-2 top-8 ${
-                        editavel[campo.name]
-                          ? "text-yellow-500"
-                          : "text-gray-500 hover:text-green-600"
-                      }`}
-                      onClick={() => handleEdit(campo.name)}
-                      tabIndex={-1}
-                      aria-label={`Editar ${campo.label}`}
-                    >
-                      <Pencil size={18} />
-                    </button>
-                  )}
-                  {errors[campo.name] && (
-                    <p className="text-sm text-red-500 mt-1">{errors[campo.name]}</p>
-                  )}
-                </div>
-              ))}
+              {campos.map((campo) => {
+                // Exibe "Doador" no campo tipo
+                if (campo.name === "tipo") {
+                  return (
+                    <div key={campo.name} className="relative">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {campo.label}
+                      </label>
+                      <Input
+                        name="tipo"
+                        value="Doador"
+                        readOnly
+                        disabled
+                        className="bg-gray-100 cursor-not-allowed"
+                      />
+                    </div>
+                  );
+                }
+                // Ajusta largura e estilo dos campos logradouro, número e complemento
+                const isNumero = campo.name === "numero";
+                const isComplemento = campo.name === "complemento";
+                return (
+                  <div
+                    key={campo.name}
+                    className={`relative ${
+                      campo.name === "logradouro"
+                        ? "md:col-span-2"
+                        : campo.name === "numero"
+                        ? "md:w-32"
+                        : ""
+                    }`}
+                  >
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {campo.label}
+                    </label>
+                    <Input
+                      name={campo.name}
+                      value={formData[campo.name as keyof typeof formData] || ""}
+                      onChange={handleChange}
+                      readOnly={
+                        camposSomenteLeitura.includes(campo.name) ||
+                        !editavel[campo.name]
+                      }
+                      disabled={camposSomenteLeitura.includes(campo.name)}
+                      className={
+                        // Aplica o mesmo estilo de complemento para número
+                        isNumero || isComplemento
+                          ? editavel[campo.name]
+                            ? ""
+                            : "bg-gray-100"
+                          : camposSomenteLeitura.includes(campo.name)
+                          ? "bg-gray-100 cursor-not-allowed"
+                          : editavel[campo.name]
+                          ? ""
+                          : "bg-gray-100"
+                      }
+                    />
+                    {/* Botão de editar apenas para campos editáveis e não somente leitura */}
+                    {!camposSomenteLeitura.includes(campo.name) && (
+                      <button
+                        type="button"
+                        className={`absolute right-2 top-8 ${
+                          editavel[campo.name]
+                            ? "text-yellow-500"
+                            : "text-gray-500 hover:text-green-600"
+                        }`}
+                        onClick={() => handleEdit(campo.name)}
+                        tabIndex={-1}
+                        aria-label={`Editar ${campo.label}`}
+                      >
+                        <Pencil size={18} />
+                      </button>
+                    )}
+                    {errors[campo.name] && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors[campo.name]}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <Button

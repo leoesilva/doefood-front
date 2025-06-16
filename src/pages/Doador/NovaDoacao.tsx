@@ -15,6 +15,8 @@ export default function NovaDoacao() {
     quantidade: "",
     validade: "",
   });
+  const [quantidade, setQuantidade] = useState("");
+  const [unidade, setUnidade] = useState("UN");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -25,6 +27,8 @@ export default function NovaDoacao() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Monta a string quantidade com unidade
+    const quantidadeComUnidade = `${quantidade} ${unidade}`;
 
     try {
       const token = localStorage.getItem("token");
@@ -43,7 +47,7 @@ export default function NovaDoacao() {
 
       const doacao = {
         alimento: formData.alimento,
-        quantidade: formData.quantidade,
+        quantidade: quantidadeComUnidade,
         validade: formData.validade,
         doadorId: uid,
         dataCriacao: new Date().toISOString(),
@@ -66,12 +70,11 @@ export default function NovaDoacao() {
 
       toast.success("Doação registrada com sucesso!");
       setFormData({ alimento: "", quantidade: "", validade: "" });
-
-      // Redireciona para o mapa após sucesso
-      setTimeout(() => navigate("/buscar-doacao"), 1500);
-    } catch (error) {
+      setQuantidade("");
+      setUnidade("UN");
+      // Removido o redirecionamento após o sucesso
+    } catch {
       toast.error("Erro ao registrar doação. Tente novamente.");
-      console.error(error);
     }
   };
 
@@ -126,22 +129,36 @@ export default function NovaDoacao() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Quantidade (kg ou unidades)
+            <div className="mb-4 flex items-center gap-2">
+              <label htmlFor="quantidade" className="block font-medium">
+                Quantidade
               </label>
               <input
+                id="quantidade"
                 type="number"
-                name="quantidade"
-                value={formData.quantidade}
-                min={0.1}
-                max={1000}
-                step={0.1}
-                onChange={handleChange}
+                min="0"
                 required
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="Ex: 10"
+                className="border rounded px-2 py-1 w-24"
+                value={quantidade}
+                onChange={(e) => setQuantidade(e.target.value)}
               />
+              <label htmlFor="unidade" className="sr-only">
+                Unidade
+              </label>
+              <select
+                id="unidade"
+                value={unidade}
+                onChange={(e) => setUnidade(e.target.value)}
+                className="border rounded px-2 py-1"
+                aria-label="Unidade"
+              >
+                <option value="un">UN</option>
+                <option value="kg">KG</option>
+                <option value="l">L</option>
+                <option value="cx">CX</option>
+                <option value="pct">PCT</option>
+                {/* Adicione outras unidades se desejar */}
+              </select>
             </div>
 
             <div>

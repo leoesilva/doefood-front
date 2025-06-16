@@ -3,13 +3,23 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/shadcn/button";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { Table } from "antd";
+import { Table, Tooltip } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { Breakpoint } from "antd/es/_util/responsiveObserver";
 
 export default function HistoricoDoacaoDoador() {
   const navigate = useNavigate();
   const [filtro, setFiltro] = useState("");
+  interface Endereco {
+    logradouro?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    municipio?: string;
+    estado?: string;
+    cep?: string;
+    // tipoLogradouro removido
+  }
   interface Doacao {
     id: string;
     doadorId: string;
@@ -18,12 +28,34 @@ export default function HistoricoDoacaoDoador() {
     validade: string;
     beneficiarioId?: string;
     beneficiario?: string;
+    beneficiarioCnpj?: string;
+    beneficiarioRazaoSocial?: string;
+    beneficiarioNomeFantasia?: string;
+    beneficiarioEndereco?: Endereco;
     endereco?: string;
     dataCriacao?: string;
   }
 
   const [doacoes, setDoacoes] = useState<Doacao[]>([]);
   const [loading, setLoading] = useState(true);
+
+  function formatarEndereco(enderecoObj: Endereco | null | undefined) {
+    if (!enderecoObj) return "-";
+    const {
+      logradouro,
+      numero,
+      complemento,
+      bairro,
+      municipio,
+      estado,
+      cep,
+    } = enderecoObj;
+    return (
+      `${logradouro || ""}, ${numero || ""}` +
+      `${complemento ? ", " + complemento : ""}, ${bairro || ""} - ${municipio || ""} / ${estado || ""}` +
+      `${cep ? " - " + cep : ""}`
+    );
+  }
 
   useEffect(() => {
     const fetchDoacoes = async () => {
@@ -49,7 +81,7 @@ export default function HistoricoDoacaoDoador() {
         if (!response.ok) throw new Error("Erro ao buscar doações");
         const data = await response.json();
 
-        // Buscar nomes dos beneficiários
+        // Buscar dados dos beneficiários
         const beneficiarioIds: string[] = [
           ...new Set(
             data
@@ -58,7 +90,13 @@ export default function HistoricoDoacaoDoador() {
           ),
         ] as string[];
 
-        const nomesBeneficiarios: Record<string, string> = {};
+        type BeneficiarioInfo = {
+          razaoSocial: string;
+          nomeFantasia: string;
+          cnpj: string;
+          endereco: Endereco;
+        };
+        const beneficiarios: Record<string, BeneficiarioInfo> = {};
         await Promise.all(
           beneficiarioIds.map(async (id: string) => {
             try {
@@ -72,29 +110,52 @@ export default function HistoricoDoacaoDoador() {
               );
               if (resp.ok) {
                 const usuario = await resp.json();
-                nomesBeneficiarios[id] =
-                  usuario.nome ||
-                  usuario.nomeFantasia ||
-                  usuario.razaoSocial ||
-                  "-";
+                beneficiarios[id] = {
+                  razaoSocial: usuario.razaoSocial || "-",
+                  nomeFantasia: usuario.nomeFantasia || "-",
+                  cnpj: usuario.cnpj || "-",
+                  endereco: usuario.endereco || {},
+                };
               } else {
-                nomesBeneficiarios[id] = "-";
+                beneficiarios[id] = {
+                  razaoSocial: "-",
+                  nomeFantasia: "-",
+                  cnpj: "-",
+                  endereco: {},
+                };
               }
             } catch {
-              nomesBeneficiarios[id] = "-";
+              beneficiarios[id] = {
+                razaoSocial: "-",
+                nomeFantasia: "-",
+                cnpj: "-",
+                endereco: {},
+              };
             }
           })
         );
 
-        // Adiciona o nome do beneficiário em cada doação
-        const doacoesComNome = data.map((d: Doacao) => ({
-          ...d,
-          beneficiario: d.beneficiarioId
-            ? nomesBeneficiarios[d.beneficiarioId]
-            : "-",
-        }));
+        // Adiciona os dados do beneficiário em cada doação
+        const doacoesComBeneficiario = data.map((d: Doacao) => {
+          const ben = d.beneficiarioId ? beneficiarios[d.beneficiarioId] : null;
+          return {
+            ...d,
+            beneficiario: ben ? ben.razaoSocial : "-",
+            beneficiarioRazaoSocial: ben ? ben.razaoSocial : "-",
+            beneficiarioNomeFantasia: ben ? ben.nomeFantasia : "-",
+            beneficiarioCnpj: ben ? ben.cnpj : "-",
+            beneficiarioEndereco: ben ? ben.endereco : null,
+          };
+        });
 
-        setDoacoes(doacoesComNome);
+        // Ordena pelas datas mais recentes de criação
+        doacoesComBeneficiario.sort((a: { dataCriacao: string | number | Date; }, b: { dataCriacao: string | number | Date; }) => {
+          const dataA = a.dataCriacao ? new Date(a.dataCriacao).getTime() : 0;
+          const dataB = b.dataCriacao ? new Date(b.dataCriacao).getTime() : 0;
+          return dataB - dataA;
+        });
+
+        setDoacoes(doacoesComBeneficiario);
       } catch (err) {
         console.error(err);
         setDoacoes([]);
@@ -112,7 +173,7 @@ export default function HistoricoDoacaoDoador() {
       (doacao.beneficiario || "").toLowerCase().includes(filtro.toLowerCase())
   );
 
-  // Colunas da tabela
+  // Colunas da tabela padronizadas
   const columns: ColumnsType<Doacao> = [
     {
       title: "Alimento",
@@ -138,7 +199,33 @@ export default function HistoricoDoacaoDoador() {
       title: "Beneficiário",
       dataIndex: "beneficiario",
       key: "beneficiario",
-      render: (text: string) => text || "-",
+      render: (_: string, record: Doacao) =>
+        record.beneficiario && record.beneficiario !== "-" ? (
+          <Tooltip
+            title={
+              <div>
+                <div>
+                  <b>CNPJ:</b> {record.beneficiarioCnpj || "-"}
+                </div>
+                <div>
+                  <b>Razão Social:</b> {record.beneficiarioRazaoSocial || "-"}
+                </div>
+                <div>
+                  <b>Nome Fantasia:</b> {record.beneficiarioNomeFantasia || "-"}
+                </div>
+                <div>
+                  <b>Endereço:</b> {formatarEndereco(record.beneficiarioEndereco)}
+                </div>
+              </div>
+            }
+          >
+            <span className="underline cursor-pointer">
+              {record.beneficiarioRazaoSocial}
+            </span>
+          </Tooltip>
+        ) : (
+          "-"
+        ),
       responsive: ["md", "lg"] as Breakpoint[],
     },
     {
@@ -171,8 +258,12 @@ export default function HistoricoDoacaoDoador() {
           dataSource={doacoesFiltradas}
           loading={loading}
           rowKey="id"
-          pagination={{ pageSize: 8 }}
+          pagination={{ pageSize: 10 }}
           scroll={{ x: true }}
+          locale={{
+            emptyText:
+              "Você ainda não realizou nenhuma doação ou nenhum resultado foi encontrado.",
+          }}
         />
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
           <Button

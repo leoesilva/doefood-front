@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebaseConfig";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
-import { Link } from "react-router-dom";
+import { auth } from "@/lib/firebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const formatarCNPJ = (valor: string) => {
   return valor
@@ -59,7 +57,6 @@ export default function CriarConta() {
   const [estado, setEstado] = useState("");
   const [numero, setNumero] = useState("");
   const [complemento, setComplemento] = useState("");
-  const [TipoLogradouro, setTipoLogradouro] = useState("");
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -79,7 +76,6 @@ export default function CriarConta() {
     municipio: "",
     estado: "",
     numero: "",
-    TipoLogradouro: "",
     email: "",
     senha: "",
     confirmarSenha: "",
@@ -90,10 +86,32 @@ export default function CriarConta() {
 
   const { forca, regras } = verificarForcaSenha(senha);
 
-  // Função para buscar dados do CNPJ via Brasil API
+  // Função para buscar dados do CNPJ via Brasil API, mas antes verifica se já existe cadastro
   async function buscarDadosCNPJ(cnpjLimpo: string) {
     try {
-      // A URL da Brasil API para CNPJ
+      // Verifica se já existe cadastro com o mesmo CNPJ
+      const existeResp = await fetch(
+        `${import.meta.env.VITE_API_URL}/usuarios/cnpj/${cnpjLimpo}`
+      );
+      if (existeResp.ok) {
+        const existe = await existeResp.json();
+        if (existe && existe.id) {
+          setErrors((prev) => ({
+            ...prev,
+            cnpj: "Já existe um cadastro com este CNPJ.",
+          }));
+          setCep("");
+          setLogradouro("");
+          setBairro("");
+          setMunicipio("");
+          setEstado("");
+          setRazaoSocial("");
+          setNomeFantasia("");
+          return;
+        }
+      }
+
+      // Se não existe, busca na Brasil API
       const url = `https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`;
       const response = await fetch(url);
       if (!response.ok) {
@@ -101,20 +119,20 @@ export default function CriarConta() {
       }
       const data = await response.json();
 
-      // Atualiza os campos de endereço
       setRazaoSocial(data.razao_social || "");
       setNomeFantasia(data.nome_fantasia || "");
-
       setCep(formatarCep(data.cep) || "");
-      setTipoLogradouro(data.descricao_tipo_de_logradouro || "");
-      setLogradouro(data.logradouro || "");
+      setLogradouro(data.descricao_tipo_de_logradouro + " " + data.logradouro || "");
       setNumero(data.numero || "");
       setComplemento(data.complemento || "");
       setBairro(data.bairro || "");
       setMunicipio(data.municipio || "");
       setEstado(data.uf || "");
     } catch {
-      setErrors((prev) => ({ ...prev, cnpj: "CNPJ inválido ou não encontrado." }));
+      setErrors((prev) => ({
+        ...prev,
+        cnpj: "CNPJ inválido, não encontrado ou já cadastrado.",
+      }));
       setCep("");
       setLogradouro("");
       setBairro("");
@@ -144,27 +162,26 @@ export default function CriarConta() {
       municipio: "",
       estado: "",
       numero: "",
-      TipoLogradouro: "",
       email: "",
       senha: "",
       confirmarSenha: "",
       geral: "",
     });
 
-
     const cnpjNumerico = cnpj.replace(/\D/g, "");
     if (cnpjNumerico.length !== 14) {
-      setErrors((prev) => ({ ...prev, cnpj: "CNPJ inválido. Deve conter 14 dígitos." }));
+      setErrors((prev) => ({
+        ...prev,
+        cnpj: "CNPJ inválido. Deve conter 14 dígitos.",
+      }));
       return;
     }
     if (!razaoSocial) {
       setErrors((prev) => ({ ...prev, razaoSocial: "Razão Social é obrigatória." }));
       return;
     }
-    if (!nomeFantasia) {
-      setErrors((prev) => ({ ...prev, nomeFantasia: "Nome Fantasia é obrigatório." }));
-      return;
-    }
+    // nomeFantasia NÃO é obrigatório
+
     if (!cep) {
       setErrors((prev) => ({ ...prev, cep: "CEP é obrigatório." }));
       return;
@@ -190,8 +207,6 @@ export default function CriarConta() {
       return;
     }
 
-    // setTentouSubmeter(true);
-
     if (!regras.tamanho || !regras.maiuscula || !regras.especial) {
       setErrors((prev) => ({
         ...prev,
@@ -201,27 +216,57 @@ export default function CriarConta() {
     }
 
     if (senha !== confirmarSenha) {
-      setErrors((prev) => ({ ...prev, confirmarSenha: "As senhas não coincidem." }));
+      setErrors((prev) => ({
+        ...prev,
+        confirmarSenha: "As senhas não coincidem.",
+      }));
       return;
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), senha.trim());
+      // Cria usuário na autenticação Firebase
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        senha.trim()
+      );
       const user = userCredential.user;
 
-      await setDoc(doc(db, "usuarios", user.uid), {
+      // Cria usuário na API (POST /usuarios) com id igual ao uid do Authentication
+      const usuarioPayload = {
+        id: user.uid,
         razaoSocial,
-        nomeFantasia,
-        cnpj,
-        cep,
-        logradouro,
-        bairro,
-        municipio,
-        estado,
-        numero,
-        complemento,
+        nomeFantasia, // pode ser vazio
+        cnpj: cnpj.replace(/\D/g, ""), // Envia CNPJ sem máscara
         tipo,
+        endereco: {
+          cep: cep.replace(/\D/g, ""), // Envia CEP sem máscara
+          logradouro, // apenas o campo logradouro
+          bairro,
+          municipio,
+          estado,
+          numero: numero.replace(/\D/g, ""), // Envia número sem máscara (caso necessário)
+          complemento, // pode ser vazio
+        },
+      };
+
+      console.log("Payload do usuário:", usuarioPayload);
+
+      const respApi = await fetch(`${import.meta.env.VITE_API_URL}/usuarios`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(usuarioPayload),
       });
+
+      if (!respApi.ok) {
+        setErrors((prev) => ({
+          ...prev,
+          geral: "Erro ao criar usuário. Tente novamente.",
+        }));
+        return;
+      }
 
       navigate("/autenticacao/login");
     } catch (error: unknown) {
@@ -233,7 +278,10 @@ export default function CriarConta() {
         } else if (message.includes("invalid-email")) {
           setErrors((prev) => ({ ...prev, email: "E-mail inválido." }));
         } else {
-          setErrors((prev) => ({ ...prev, geral: "Erro inesperado. Tente novamente." }));
+          setErrors((prev) => ({
+            ...prev,
+            geral: "Erro inesperado. Tente novamente.",
+          }));
         }
       }
     }
@@ -322,7 +370,6 @@ export default function CriarConta() {
                   setNomeFantasia(e.target.value);
                   setErrors((prev) => ({ ...prev, nomeFantasia: "" }));
                 }}
-                required
                 className={errors.nomeFantasia ? "border-red-500" : ""}
               />
               {errors.nomeFantasia && (
@@ -331,24 +378,9 @@ export default function CriarConta() {
             </div>
           </div>
 
-          {/* Linha 3: Tipo Logradouro, Logradouro, Número (todos na mesma linha) */}
+          {/* Linha 3: Logradouro, Número (todos na mesma linha) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="TipoLogradouro" className="block text-sm font-medium">
-                Rua, Avenida, etc.
-              </label>
-              <Input
-                id="TipoLogradouro"
-                value={TipoLogradouro}
-                onChange={(e) => setTipoLogradouro(e.target.value)}
-                required
-                className={errors.TipoLogradouro ? "border-red-500" : ""}
-              />
-              {errors.TipoLogradouro && (
-                <p className="text-sm text-red-500 mt-1">{errors.TipoLogradouro}</p>
-              )}
-            </div>
-            <div>
+            <div className="md:col-span-2">
               <label htmlFor="logradouro" className="block text-sm font-medium">
                 Logradouro
               </label>
@@ -378,7 +410,7 @@ export default function CriarConta() {
                   setErrors((prev) => ({ ...prev, numero: "" }));
                 }}
                 required
-                className={errors.numero ? "border-red-500" : ""}
+                className={`md:w-32 ${errors.numero ? "border-red-500" : ""}`}
               />
               {errors.numero && (
                 <p className="text-sm text-red-500 mt-1">{errors.numero}</p>

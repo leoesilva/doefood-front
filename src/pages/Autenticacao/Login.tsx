@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { Button } from "@/components/shadcn/button";
@@ -8,8 +8,26 @@ import { Link, useNavigate } from "react-router-dom";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [lembrarMe, setLembrarMe] = useState(false);
   const [erro, setErro] = useState("");
   const navigate = useNavigate();
+
+  // Ao carregar, verifica se há dados salvos
+  useEffect(() => {
+    const emailSalvo = localStorage.getItem("lembrarEmail");
+    if (emailSalvo) {
+      setEmail(emailSalvo);
+      setLembrarMe(true);
+    }
+  }, []);
+
+  // Ao marcar/desmarcar o checkbox
+  const handleLembrarMe = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLembrarMe(e.target.checked);
+    if (!e.target.checked) {
+      localStorage.removeItem("lembrarEmail");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +79,13 @@ export default function Login() {
       }
     }
 
+    // Salva ou remove o e-mail conforme a opção "Lembrar-me"
+    if (lembrarMe) {
+      localStorage.setItem("lembrarEmail", email);
+    } else {
+      localStorage.removeItem("lembrarEmail");
+    }
+
     // Limpa os campos após o login
     setEmail("");
     setSenha("");
@@ -100,7 +125,12 @@ export default function Login() {
             />
             <div className="flex items-center justify-between mt-2">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" className="accent-blue-600 h-4 w-4" />
+                <input
+                  type="checkbox"
+                  className="accent-blue-600 h-4 w-4"
+                  checked={lembrarMe}
+                  onChange={handleLembrarMe}
+                />
                 Lembrar-me
               </label>
               <Link
