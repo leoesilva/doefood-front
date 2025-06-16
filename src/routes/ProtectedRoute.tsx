@@ -6,7 +6,7 @@ import { onAuthStateChanged, getIdToken } from "firebase/auth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
-  allowedTipo?: "doador" | "beneficiario"; // opcional
+  allowedTipo?: "doador" | "beneficiario"; 
 }
 
 const ProtectedRoute = ({ children, allowedTipo }: ProtectedRouteProps) => {

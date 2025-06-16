@@ -18,35 +18,52 @@ export default function Login() {
     setErro("");
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), senha.trim());
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email.trim(),
+        senha.trim()
+      );
       const token = await userCredential.user.getIdToken();
       localStorage.setItem("token", token);
+
       // Busca o tipo do usuário no backend e redireciona conforme o tipo
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/usuarios/${userCredential.user.uid}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/usuarios/${userCredential.user.uid}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
       if (!response.ok) throw new Error("Erro ao buscar dados do usuário");
+
       const usuario = await response.json();
+
       // Verifica se o backend retorna o tipo diretamente ou dentro de um objeto 'usuario'
       const tipo = usuario.tipo || (usuario.usuario && usuario.usuario.tipo);
 
-      if (tipo === "doador") {
-        navigate("/doador", { replace: true });
-      } else if (tipo === "beneficiario") {
-        navigate("/beneficiario", { replace: true });
+      if (tipo) {
+        // Salva o tipo no localStorage para usar depois no painel
+        localStorage.setItem("tipoUsuario", tipo);
+
+        if (tipo === "doador") {
+          navigate("/doador", { replace: true });
+        } else if (tipo === "beneficiario") {
+          navigate("/beneficiario", { replace: true });
+        } else {
+          setErro("Tipo de usuário não reconhecido.");
+        }
       } else {
-        setErro("Tipo de usuário não reconhecido.");
-        // Opcional: não redireciona, apenas exibe erro
+        setErro("Tipo de usuário não encontrado.");
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        // Resposta segura ao usuário
         setErro("E-mail ou senha inválidos.");
       }
     }
-    // Limpa os campos após o login bem-sucedido
+
+    // Limpa os campos após o login
     setEmail("");
     setSenha("");
   };
@@ -71,7 +88,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">E-mail</label>
+            <label htmlFor="email" className="block text-sm font-medium">
+              E-mail
+            </label>
             <Input
               id="email"
               type="email"
@@ -83,7 +102,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="senha" className="block text-sm font-medium">Senha</label>
+            <label htmlFor="senha" className="block text-sm font-medium">
+              Senha
+            </label>
             <Input
               id="senha"
               type="password"
@@ -97,7 +118,10 @@ export default function Login() {
                 <input type="checkbox" className="accent-blue-600 h-4 w-4" />
                 Lembrar-me
               </label>
-              <Link to="/autenticacao/esqueci-senha" className="text-sm text-blue-600 hover:underline">
+              <Link
+                to="/autenticacao/esqueci-senha"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Esqueceu a senha?
               </Link>
             </div>
@@ -115,12 +139,18 @@ export default function Login() {
 
         <p className="text-sm text-center mt-4">
           Não tem uma conta?{" "}
-          <Link to="/autenticacao/criar-conta" className="text-blue-600 hover:underline">
+          <Link
+            to="/autenticacao/criar-conta"
+            className="text-blue-600 hover:underline"
+          >
             Cadastre-se
           </Link>
         </p>
 
-        <Link to="/" className="block mt-4 text-sm text-blue-600 hover:underline text-center">
+        <Link
+          to="/"
+          className="block mt-4 text-sm text-blue-600 hover:underline text-center"
+        >
           ← Voltar para a página inicial
         </Link>
       </div>
