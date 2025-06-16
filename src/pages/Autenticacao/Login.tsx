@@ -3,8 +3,6 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseConfig";
 import { Button } from "@/components/shadcn/button";
 import { Input } from "@/components/shadcn/input";
-import { Separator } from "@/components/shadcn/separator";
-import { FcGoogle } from "react-icons/fc";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
@@ -72,19 +70,6 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
       <div className="w-full max-w-sm p-6 rounded-xl shadow-md border bg-white">
         <h1 className="text-2xl font-semibold text-center">Conecte-se</h1>
-
-        <div className="flex gap-2 mt-6">
-          <Button variant="outline" className="w-full flex items-center gap-2">
-            <FcGoogle className="h-4 w-4" />
-            Google
-          </Button>
-        </div>
-
-        <div className="flex items-center my-6">
-          <Separator className="flex-1" />
-          <span className="mx-2 text-xs text-gray-500">OU CONTINUE COM</span>
-          <Separator className="flex-1" />
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
