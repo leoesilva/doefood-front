@@ -4,6 +4,8 @@ import { Button } from "@/components/shadcn/button";
 import { useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
 import { Table } from "antd";
+import type { ColumnsType } from "antd/es/table";
+import type { Breakpoint } from "antd/es/_util/responsiveObserver";
 
 export default function HistoricoDoacaoDoador() {
   const navigate = useNavigate();
@@ -14,6 +16,7 @@ export default function HistoricoDoacaoDoador() {
     alimento: string;
     quantidade: number;
     validade: string;
+    beneficiarioId?: string;
     beneficiario?: string;
     endereco?: string;
     dataCriacao?: string;
@@ -45,7 +48,53 @@ export default function HistoricoDoacaoDoador() {
         );
         if (!response.ok) throw new Error("Erro ao buscar doações");
         const data = await response.json();
-        setDoacoes(data);
+
+        // Buscar nomes dos beneficiários
+        const beneficiarioIds: string[] = [
+          ...new Set(
+            data
+              .filter((d: Doacao) => d.beneficiarioId)
+              .map((d: Doacao) => d.beneficiarioId)
+          ),
+        ] as string[];
+
+        const nomesBeneficiarios: Record<string, string> = {};
+        await Promise.all(
+          beneficiarioIds.map(async (id: string) => {
+            try {
+              const resp = await fetch(
+                `${import.meta.env.VITE_API_URL}/usuarios/${id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              if (resp.ok) {
+                const usuario = await resp.json();
+                nomesBeneficiarios[id] =
+                  usuario.nome ||
+                  usuario.nomeFantasia ||
+                  usuario.razaoSocial ||
+                  "-";
+              } else {
+                nomesBeneficiarios[id] = "-";
+              }
+            } catch {
+              nomesBeneficiarios[id] = "-";
+            }
+          })
+        );
+
+        // Adiciona o nome do beneficiário em cada doação
+        const doacoesComNome = data.map((d: Doacao) => ({
+          ...d,
+          beneficiario: d.beneficiarioId
+            ? nomesBeneficiarios[d.beneficiarioId]
+            : "-",
+        }));
+
+        setDoacoes(doacoesComNome);
       } catch (err) {
         console.error(err);
         setDoacoes([]);
@@ -64,23 +113,33 @@ export default function HistoricoDoacaoDoador() {
   );
 
   // Colunas da tabela
-  const columns = [
-    { title: "Alimento", dataIndex: "alimento", key: "alimento", responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
-    { title: "Quantidade", dataIndex: "quantidade", key: "quantidade", responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
+  const columns: ColumnsType<Doacao> = [
+    {
+      title: "Alimento",
+      dataIndex: "alimento",
+      key: "alimento",
+      responsive: ["xs", "sm", "md", "lg"] as Breakpoint[],
+    },
+    {
+      title: "Quantidade",
+      dataIndex: "quantidade",
+      key: "quantidade",
+      responsive: ["sm", "md", "lg"] as Breakpoint[],
+    },
     {
       title: "Validade",
       dataIndex: "validade",
       key: "validade",
       render: (text: string) =>
         text ? new Date(text).toLocaleDateString("pt-BR") : "-",
-      responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+      responsive: ["sm", "md", "lg"] as Breakpoint[],
     },
     {
       title: "Beneficiário",
       dataIndex: "beneficiario",
       key: "beneficiario",
       render: (text: string) => text || "-",
-      responsive: ['md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+      responsive: ["md", "lg"] as Breakpoint[],
     },
     {
       title: "Doado em",
@@ -88,7 +147,7 @@ export default function HistoricoDoacaoDoador() {
       key: "dataCriacao",
       render: (text: string) =>
         text ? new Date(text).toLocaleString("pt-BR") : "-",
-      responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
+      responsive: ["xs", "sm", "md", "lg"] as Breakpoint[],
     },
   ];
 
@@ -96,10 +155,8 @@ export default function HistoricoDoacaoDoador() {
     <div className="min-h-screen flex flex-col justify-between bg-gray-50 font-[Roboto]">
       <main className="max-w-6xl mx-auto px-6 py-12 flex-grow">
         <h1 className="text-3xl font-bold text-green-700 mb-8 text-center">
-          Histórico de Doações
+          Histórico de Doações Realizadas
         </h1>
-
-        {/* 🔍 Campo de Filtro Global */}
         <div className="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <input
             type="text"
@@ -109,20 +166,14 @@ export default function HistoricoDoacaoDoador() {
             onChange={(e) => setFiltro(e.target.value)}
           />
         </div>
-
         <Table
           columns={columns}
           dataSource={doacoesFiltradas}
           loading={loading}
           rowKey="id"
-          locale={{
-            emptyText:
-              "Você ainda não fez nenhuma doação ou nenhum resultado foi encontrado.",
-          }}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: true }} // Responsividade horizontal
+          pagination={{ pageSize: 8 }}
+          scroll={{ x: true }}
         />
-
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
           <Button
             onClick={() => navigate(-1)}
