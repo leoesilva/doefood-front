@@ -13,9 +13,8 @@ export default function HistoricoDoacaoBeneficiario() {
     alimento: string;
     quantidade: number;
     validade: string;
+    doadorId?: string;
     doador?: string;
-    endereco?: string;
-    dataRecebida?: string;
   }
 
   const [doacoes, setDoacoes] = useState<Doacao[]>([]);
@@ -34,7 +33,7 @@ export default function HistoricoDoacaoBeneficiario() {
           return;
         }
         const uid = currentUser.uid;
-        // Ajuste a rota conforme sua API retorna as doações recebidas pelo beneficiário
+        // Busca as doações recebidas pelo beneficiário
         const response = await fetch(
           `${import.meta.env.VITE_API_URL}/doacoes/beneficiario/${uid}`,
           {
@@ -45,7 +44,47 @@ export default function HistoricoDoacaoBeneficiario() {
         );
         if (!response.ok) throw new Error("Erro ao buscar doações");
         const data = await response.json();
-        setDoacoes(data);
+
+        // Buscar nomes dos doadores
+        const doadorIds: string[] = [
+          ...new Set(
+            data
+              .filter((d: Doacao) => d.doadorId)
+              .map((d: Doacao) => d.doadorId)
+          ),
+        ] as string[];
+
+        const nomesDoadores: Record<string, string> = {};
+        await Promise.all(
+          doadorIds.map(async (id: string) => {
+            try {
+              const resp = await fetch(
+                `${import.meta.env.VITE_API_URL}/usuarios/${id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              if (resp.ok) {
+                const usuario = await resp.json();
+                nomesDoadores[id] = usuario.nome || usuario.nomeFantasia || usuario.razaoSocial || "-";
+              } else {
+                nomesDoadores[id] = "-";
+              }
+            } catch {
+              nomesDoadores[id] = "-";
+            }
+          })
+        );
+
+        // Adiciona o nome do doador em cada doação
+        const doacoesComNome = data.map((d: Doacao) => ({
+          ...d,
+          doador: d.doadorId ? nomesDoadores[d.doadorId] : "-",
+        }));
+
+        setDoacoes(doacoesComNome);
       } catch (err) {
         console.error(err);
         setDoacoes([]);
@@ -63,7 +102,7 @@ export default function HistoricoDoacaoBeneficiario() {
       (doacao.doador || "").toLowerCase().includes(filtro.toLowerCase())
   );
 
-  // Colunas da tabela
+  // Colunas da tabela (sem endereço e recebido em)
   const columns = [
     { title: "Alimento", dataIndex: "alimento", key: "alimento", responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
     { title: "Quantidade", dataIndex: "quantidade", key: "quantidade", responsive: ['sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[] },
@@ -81,21 +120,6 @@ export default function HistoricoDoacaoBeneficiario() {
       key: "doador",
       render: (text: string) => text || "-",
       responsive: ['md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
-    },
-    {
-      title: "Endereço",
-      dataIndex: "endereco",
-      key: "endereco",
-      render: (text: string) => text || "-",
-      responsive: ['md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
-    },
-    {
-      title: "Recebido em",
-      dataIndex: "dataRecebida",
-      key: "dataRecebida",
-      render: (text: string) =>
-        text ? new Date(text).toLocaleString("pt-BR") : "-",
-      responsive: ['xs', 'sm', 'md', 'lg'] as ("xs" | "sm" | "md" | "lg" | "xl" | "xxl")[],
     },
   ];
 
