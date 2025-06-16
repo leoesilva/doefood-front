@@ -155,6 +155,8 @@ export default function NovaDoacao() {
                 onChange={handleChange}
                 min={minDateStr}
                 className="w-full p-2 border border-gray-300 rounded"
+                placeholder="Selecione a data de validade"
+                title="Selecione a data de validade"
               />
             </div>
 
